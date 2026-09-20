@@ -10,7 +10,7 @@ import sys
 import threading
 from pathlib import Path
 
-from .errors import InputTidakValid
+from daspro_api.errors import InputTidakValid
 
 KUNCI = threading.Lock()
 _TERSIMPAN = {}

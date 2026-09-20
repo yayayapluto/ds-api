@@ -27,6 +27,7 @@ daspro_api/          kode layanan
   jobs.py            pekerjaan latar belakang dan kemajuannya
   request.py         pembaca badan permintaan JSON dan multipart
   envfile.py         pembaca berkas .env
+  web/               halaman web panel (html, css, js)
   server.py          endpoint HTTP (pustaka bawaan Python)
   __main__.py        perintah baris
 skill/               salinan skill solve-daspro (skrip + acuan gaya)
@@ -75,6 +76,25 @@ diisi, layanan menolak jalan dan `--cek` memberi tahu apa yang kurang.
 `--cek` sekaligus mengirim satu pertanyaan kecil ke layanan AI untuk
 memastikan kunci dan alamatnya benar.
 
+## Halaman web
+
+Buka `http://127.0.0.1:8787/` di peramban. Halaman ini bisa dipakai untuk
+seluruh pekerjaan tanpa mengetik perintah:
+
+1. Isi penyedia, kunci API, dan nama model. Ada tombol uji koneksi.
+2. Unggah modul dan template LKP.
+3. Isi identitas, lalu tekan Mulai kerjakan.
+4. Lihat kemajuan, lalu unduh hasilnya.
+
+Kunci API disimpan hanya di peramban (localStorage), dan dikirim ke server
+hanya saat pekerjaan berjalan. Server tidak menuliskannya ke berkas, tidak
+memasukkannya ke catatan kemajuan, dan tidak pernah mengirimnya balik.
+Endpoint `/health` hanya memberi tahu apakah kunci sudah terisi, bukan
+isinya. Tombol Hapus di peramban menghilangkan kunci itu dari peramban.
+
+Kalau kunci di halaman web diisi, kunci itu yang dipakai. Kalau kosong,
+dipakai kunci milik server dari berkas `.env`.
+
 ## Pengaturan
 
 Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
@@ -105,6 +125,7 @@ Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
 
 | Metode | Jalur | Keterangan |
 | --- | --- | --- |
+| `GET` | `/` | halaman web panel pengerjaan |
 | `GET` | `/health` | keadaan layanan, kesiapan skill, AI, dan gcc |
 | `GET` | `/v1/skill` | daftar skrip dan acuan gaya yang dipakai |
 | `POST` | `/v1/jobs` | unggah modul dan template, mulai pekerjaan |
@@ -114,6 +135,7 @@ Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
 | `GET` | `/v1/jobs/{id}/download` | unduh berkas ZIP |
 | `GET` | `/v1/jobs/{id}/files/{nama}` | unduh satu berkas hasil |
 | `POST` | `/v1/jobs/{id}/cancel` | batalkan pekerjaan |
+| `POST` | `/v1/ai/uji` | uji koneksi kredensial AI yang dikirim |
 | `POST` | `/v1/verify` | kompilasi dan jalankan berkas `.c` |
 | `POST` | `/v1/cek-bahasa` | periksa gaya bahasa laporan |
 | `POST` | `/v1/docx/peta` | lihat tempat kosong di template docx |
@@ -187,3 +209,7 @@ pengujian semua endpoint HTTP.
 - Jangan taruh kunci API di dalam kode. Pakai variabel lingkungan.
 - Layanan ini tidak punya pembatasan pengguna. Kalau dibuka ke jaringan
   luas, isi `DASPRO_AUTH_TOKEN` dan taruh di belakang proxy.
+- Kredensial AI yang dikirim lewat halaman web hanya hidup selama pekerjaan
+  berjalan. Tidak ada jalur yang menuliskannya ke disk.
+- Halaman web hanya melayani berkas di dalam `daspro_api/web`. Permintaan
+  yang mencoba keluar dari folder itu ditolak.

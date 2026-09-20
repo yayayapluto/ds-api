@@ -7,7 +7,7 @@ tulisan AI.
 from pathlib import Path
 from typing import Optional
 
-from .sanitize import bersihkan
+from daspro_api.sanitize import bersihkan
 
 
 def _sel(teks) -> str:

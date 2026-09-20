@@ -7,8 +7,8 @@ saat mengerjakan modul secara manual.
 import json
 from typing import Optional
 
-from .extract import ringkas
-from .skillbridge import Skill
+from daspro_api.extract import ringkas
+from daspro_api.skillbridge import Skill
 
 ATURAN_UMUM = """Kamu asisten praktikum Dasar Pemrograman. Tugasmu mengerjakan \
 modul praktikum bahasa C untuk mahasiswa semester 1 Informatika.

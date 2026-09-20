@@ -15,8 +15,8 @@ import time
 import urllib.error
 import urllib.request
 
-from .config import Pengaturan
-from .errors import AiBelumDiatur, AiGagal
+from daspro_api.config import Pengaturan
+from daspro_api.errors import AiBelumDiatur, AiGagal
 
 
 def ambil_json(teks: str):

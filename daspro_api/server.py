@@ -24,14 +24,19 @@ import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import __version__
-from .ai import KlienAi
-from .compiler import KompilatorC
-from .config import Pengaturan
-from .errors import DasproError, InputTidakValid, TidakDitemukan
-from .jobs import GudangPekerjaan
-from .pipeline import Pipeline
-from .request import (
+from daspro_api import __version__
+from daspro_api.ai import KlienAi
+from daspro_api.compiler import KompilatorC
+from daspro_api.config import Pengaturan
+from daspro_api.errors import (
+    AiBelumDiatur,
+    DasproError,
+    InputTidakValid,
+    TidakDitemukan,
+)
+from daspro_api.jobs import GudangPekerjaan
+from daspro_api.pipeline import Pipeline
+from daspro_api.request import (
     ambil_berkas,
     ambil_semua_berkas,
     baca_permintaan,
@@ -39,7 +44,7 @@ from .request import (
     field_bool,
     field_json,
 )
-from .skillbridge import Skill
+from daspro_api.skillbridge import Skill
 
 JENIS_BERKAS = {
     ".c": "text/plain; charset=utf-8",
@@ -51,6 +56,21 @@ JENIS_BERKAS = {
     ".pdf": "application/pdf",
 }
 NAMA_BERKAS_AMAN = re.compile(r"^[A-Za-z0-9._/-]+$")
+
+# Folder halaman web yang ikut di dalam paket ini.
+FOLDER_WEB = Path(__file__).resolve().parent / "web"
+
+# Jenis berkas yang boleh dikirim ke peramban. Selain ini ditolak, supaya
+# berkas lain di folder web tidak bisa dibaca paksa.
+JENIS_WEB = {
+    ".html": "text/html; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+    ".json": "application/json; charset=utf-8",
+    ".webmanifest": "application/manifest+json",
+}
 
 
 class LayananDaspro:
@@ -130,6 +150,41 @@ class Penanganan(BaseHTTPRequestHandler):
     def _sesi(self) -> str:
         return str(abs(hash(self.client_address)) % 10_000)
 
+    def _berkas_web(self, jalur: str) -> Path:
+        """Cari berkas halaman web dengan aman.
+
+        Semua jalur diselesaikan dulu, lalu dipastikan masih berada di
+        dalam folder web. Jadi permintaan seperti `../../.env` tidak bisa
+        membaca berkas di luar folder itu.
+        """
+        if not FOLDER_WEB.is_dir():
+            raise TidakDitemukan(
+                "halaman web belum ada. Folder daspro_api/web tidak ditemukan."
+            )
+        nama = jalur.strip("/") or "index.html"
+        if ".." in nama.split("/"):
+            raise InputTidakValid("jalur berkas tidak boleh dipakai")
+
+        kandidat = FOLDER_WEB / nama
+        if kandidat.is_dir():
+            kandidat = kandidat / "index.html"
+        try:
+            nyata = kandidat.resolve()
+            dasar = FOLDER_WEB.resolve()
+        except OSError as e:
+            raise InputTidakValid(f"jalur berkas tidak bisa dibaca: {e}") from e
+        if dasar not in nyata.parents and nyata != dasar:
+            raise InputTidakValid("jalur berkas keluar dari folder web")
+        if not nyata.is_file():
+            raise TidakDitemukan(f"berkas {nama} tidak ada")
+        if nyata.suffix.lower() not in JENIS_WEB:
+            raise InputTidakValid(f"jenis berkas {nyata.suffix} tidak dilayani")
+        return nyata
+
+    def _kirim_halaman(self, jalur: str):
+        berkas = self._berkas_web(jalur)
+        self._kirim_berkas(berkas)
+
     def _cari_berkas_job(self, job, nama: str) -> Path:
         """Cari berkas hasil pekerjaan, baik di folder job maupun folder kerja."""
         kandidat = [job.folder / nama, job.folder / "kerja" / nama]
@@ -186,7 +241,7 @@ class Penanganan(BaseHTTPRequestHandler):
                     "skill_siap": self.layanan.skill.siap,
                     "folder_skill": str(self.layanan.skill.folder),
                     "ai_siap": p.ai_siap,
-                    "ai_model": p.ai_model,
+                    "ai": p.ai_ringkas(),
                     "gcc": self.layanan.gcc.periksa_gcc(),
                     "jumlah_pekerjaan": len(self.layanan.pekerjaan.daftar(1000)),
                 },
@@ -241,7 +296,10 @@ class Penanganan(BaseHTTPRequestHandler):
                 self._kirim_berkas(self._cari_berkas_job(job, nama))
                 return
 
-        raise TidakDitemukan(f"endpoint {self.path} tidak ada")
+        # Bukan endpoint API: coba sajikan sebagai halaman web.
+        if bagian and bagian[0] in {"v1", "health"}:
+            raise TidakDitemukan(f"endpoint {self.path} tidak ada")
+        self._kirim_halaman(self.path.split("?", 1)[0])
 
     def _post(self):
         bagian = self._bagian_jalur()
@@ -253,6 +311,10 @@ class Penanganan(BaseHTTPRequestHandler):
         if len(bagian) == 4 and bagian[:2] == ["v1", "jobs"] and bagian[3] == "cancel":
             job = self.layanan.pekerjaan.batalkan(bagian[2])
             self._kirim(200, {"ok": True, **job.ke_dict()})
+            return
+
+        if bagian == ["v1", "ai", "uji"]:
+            self._uji_ai()
             return
 
         if bagian == ["v1", "verify"]:
@@ -289,7 +351,9 @@ class Penanganan(BaseHTTPRequestHandler):
             "buat_copyable": field_bool(data, "buat_copyable", True),
             "isi_docx": field_bool(data, "isi_docx", True),
         }
-        p = self.layanan.p
+        # Kredensial dari pengguna, kalau dikirim. Isinya hanya dipakai
+        # selama pekerjaan ini berjalan, dan tidak pernah ditulis ke disk.
+        kredensial = self._kredensial(data)
 
         def tugas(job):
             return self.layanan.pipeline.kerjakan(
@@ -298,6 +362,7 @@ class Penanganan(BaseHTTPRequestHandler):
                 berkas_lkp=berkas_lkp,
                 identitas=identitas,
                 opsi=opsi,
+                kredensial=kredensial,
             )
 
         job = self.layanan.pekerjaan.buat(
@@ -306,7 +371,10 @@ class Penanganan(BaseHTTPRequestHandler):
                 "lkp": Path(berkas_lkp).name if berkas_lkp else None,
                 "identitas": identitas,
                 "opsi": opsi,
-                "model": p.ai_model,
+                # Sengaja hanya nama modelnya. Kunci dan alamat tidak ikut,
+                # supaya berkas status.json tidak pernah memuat rahasia.
+                "model": (kredensial or {}).get("model") or self.layanan.p.ai_model,
+                "pakai_kredensial_sendiri": bool(kredensial),
             },
             tugas,
         )
@@ -322,6 +390,40 @@ class Penanganan(BaseHTTPRequestHandler):
                 "download_url": f"/v1/jobs/{job.id}/download",
             },
         )
+
+    def _kredensial(self, data: dict):
+        """Baca kredensial AI yang dikirim pengguna, kalau ada.
+
+        Kunci hanya dipakai di memori selama pekerjaan berjalan. Nilai ini
+        tidak pernah ditulis ke berkas status, tidak masuk catatan tahap,
+        dan tidak pernah dikirim balik ke pemanggil.
+        """
+        kunci = (field(data, "ai_api_key") or "").strip()
+        alamat = (field(data, "ai_base_url") or "").strip()
+        model = (field(data, "ai_model") or "").strip()
+        if not (kunci or alamat or model):
+            return None
+        return {"api_key": kunci, "base_url": alamat, "model": model}
+
+    # --- endpoint AI ------------------------------------------------------
+    def _uji_ai(self):
+        """Uji kredensial AI yang dikirim, tanpa menyimpannya."""
+        data = self._isi()
+        kredensial = self._kredensial(data) or {}
+        p = self.layanan.p.dengan(
+            ai_api_key=kredensial.get("api_key"),
+            ai_base_url=kredensial.get("base_url"),
+            ai_model=kredensial.get("model"),
+        )
+        # Diperiksa di sini, bukan di dalam klien, supaya aturannya tetap
+        # berlaku walau kliennya diganti saat pengujian.
+        if not p.ai_siap:
+            raise AiBelumDiatur(
+                "kunci, alamat, dan nama model harus terisi untuk menguji koneksi."
+            )
+        klien = self.layanan.pipeline.buat_klien(p)
+        hasil = klien.uji_koneksi()
+        self._kirim(200, {"ok": True, **hasil})
 
     # --- endpoint pemeriksaan -------------------------------------------
     def _verify(self):

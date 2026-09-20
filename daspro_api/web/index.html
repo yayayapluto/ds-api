@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daspro API - Panel Pengerjaan Modul</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <h1>Daspro API</h1>
+    <p class="sub">Panel untuk mengerjakan modul praktikum C dan mengunduh hasilnya</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ Keadaan layanan ============ -->
+  <section class="card" id="kartu-keadaan">
+    <h2>Keadaan layanan</h2>
+    <div id="keadaan" class="baris-keadaan">
+      <span class="pil abu">memuat...</span>
+    </div>
+  </section>
+
+  <!-- ============ Langkah 1: pengaturan AI ============ -->
+  <section class="card">
+    <h2><span class="nomor">1</span> Pengaturan AI</h2>
+    <p class="bantuan">
+      Kode C ditulis oleh model bahasa, jadi kunci API wajib diisi.
+      Isi di sini kalau server belum punya kunci sendiri.
+    </p>
+
+    <div class="catatan-aman">
+      Kunci API hanya disimpan di peramban kamu (localStorage) dan dikirim
+      ke server hanya saat mengerjakan modul. Server tidak menyimpannya ke
+      berkas, dan tidak pernah mengirimnya balik.
+    </div>
+
+    <div class="grid-2">
+      <label>
+        Penyedia (alamat layanan)
+        <select id="penyedia">
+          <option value="https://api.openai.com/v1">OpenAI</option>
+          <option value="https://openrouter.ai/api/v1">OpenRouter</option>
+          <option value="https://api.deepseek.com/v1">DeepSeek</option>
+          <option value="https://api.groq.com/openai/v1">Groq</option>
+          <option value="http://localhost:11434/v1">Ollama (lokal)</option>
+          <option value="lain">Lainnya (tulis sendiri)</option>
+        </select>
+      </label>
+      <label>
+        Nama model
+        <input id="model" list="daftar-model" placeholder="gpt-4o-mini">
+        <datalist id="daftar-model">
+          <option value="gpt-4o-mini"></option>
+          <option value="gpt-4o"></option>
+          <option value="gpt-4.1-mini"></option>
+          <option value="deepseek-chat"></option>
+          <option value="llama-3.3-70b-versatile"></option>
+          <option value="qwen2.5-coder:7b"></option>
+        </datalist>
+      </label>
+    </div>
+
+    <label id="bungkus-alamat" class="sembunyi">
+      Alamat layanan
+      <input id="alamat" placeholder="https://.../v1">
+    </label>
+
+    <label>
+      Kunci API
+      <span class="baris-kunci">
+        <input id="kunci" type="password" placeholder="sk-..." autocomplete="off">
+        <button type="button" class="tombol kecil" id="lihat-kunci">lihat</button>
+      </span>
+    </label>
+
+    <div class="baris-tombol">
+      <button type="button" class="tombol" id="simpan-ai">Simpan pengaturan</button>
+      <button type="button" class="tombol garis" id="uji-ai">Uji koneksi</button>
+      <button type="button" class="tombol garis" id="hapus-ai">Hapus dari peramban</button>
+    </div>
+    <div id="pesan-ai" class="pesan"></div>
+  </section>
+
+  <!-- ============ Langkah 2: modul ============ -->
+  <section class="card">
+    <h2><span class="nomor">2</span> Berkas modul</h2>
+
+    <div class="grid-2">
+      <label>
+        Modul praktikum (PDF atau docx) <span class="wajib">wajib</span>
+        <input id="modul" type="file" accept=".pdf,.docx">
+      </label>
+      <label>
+        Template LKP (docx) <span class="opsional">kalau ada</span>
+        <input id="lkp" type="file" accept=".docx">
+      </label>
+    </div>
+
+    <div class="baris-centang">
+      <label class="centang"><input type="checkbox" id="isi-docx" checked> Isi template LKP</label>
+      <label class="centang"><input type="checkbox" id="copyable" checked> Buat HTML mudah disalin</label>
+    </div>
+  </section>
+
+  <!-- ============ Langkah 3: identitas ============ -->
+  <section class="card">
+    <h2><span class="nomor">3</span> Identitas</h2>
+    <div class="grid-2">
+      <label>Nama <input id="nama" placeholder="Nama lengkap"></label>
+      <label>NIM <input id="nim" placeholder="NIM"></label>
+      <label>Kelas <input id="kelas" placeholder="B"></label>
+      <label>Modul ke- <input id="modul-ke" placeholder="5"></label>
+    </div>
+    <label>Mata kuliah <input id="matakuliah" value="Praktikum Dasar Pemrograman"></label>
+
+    <div class="baris-tombol">
+      <button type="button" class="tombol besar" id="mulai">Mulai kerjakan</button>
+      <button type="button" class="tombol garis" id="batal" disabled>Batalkan</button>
+    </div>
+    <div id="pesan-mulai" class="pesan"></div>
+  </section>
+
+  <!-- ============ Kemajuan ============ -->
+  <section class="card sembunyi" id="kartu-kemajuan">
+    <h2>Kemajuan</h2>
+    <div class="bar-luar"><div class="bar-dalam" id="bar"></div></div>
+    <div class="baris-keadaan">
+      <strong id="persen">0%</strong>
+      <span id="tahap" class="pil">menunggu</span>
+      <span id="pesan-jalan" class="redup"></span>
+    </div>
+    <pre id="log" class="log"></pre>
+  </section>
+
+  <!-- ============ Hasil ============ -->
+  <section class="card sembunyi" id="kartu-hasil">
+    <h2>Hasil</h2>
+    <div id="ringkasan"></div>
+    <div class="baris-tombol">
+      <button type="button" class="tombol besar" id="unduh-zip">Unduh semua (ZIP)</button>
+    </div>
+    <table id="tabel-berkas" class="sembunyi">
+      <thead><tr><th>Berkas</th><th>Ukuran</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- ============ Riwayat ============ -->
+  <section class="card">
+    <h2>Riwayat pekerjaan</h2>
+    <button type="button" class="tombol garis kecil" id="muat-riwayat">Muat ulang</button>
+    <div id="riwayat"></div>
+  </section>
+
+</main>
+
+<footer class="wrap redup">
+  <p>Daspro API. Kunci API tidak pernah disimpan di server.</p>
+</footer>
+
+<div id="toast" class="toast"></div>
+<script src="/app.js"></script>
+</body>
+</html>

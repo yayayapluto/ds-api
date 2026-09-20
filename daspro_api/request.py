@@ -8,7 +8,7 @@ import re
 import uuid
 from pathlib import Path
 
-from .errors import InputTidakValid
+from daspro_api.errors import InputTidakValid
 
 PEMISAH = re.compile(rb"\r\n--([^\r\n]+)")
 JUDUL_ISI = re.compile(rb'name="([^"]*)"(?:;\s*filename="([^"]*)")?', re.I)

@@ -94,6 +94,35 @@ class Pengaturan:
     def max_upload_bytes(self) -> int:
         return max(1, self.max_upload_mb) * 1024 * 1024
 
+    def ai_ringkas(self) -> dict:
+        """Keterangan layanan AI yang aman ditampilkan.
+
+        Kunci API tidak pernah ikut. Yang dikirim hanya keterangan apakah
+        kunci sudah terisi, supaya halaman web bisa memberi tahu pengguna
+        tanpa membocorkan isinya.
+        """
+        return {
+            "base_url": self.ai_base_url,
+            "model": self.ai_model,
+            "kunci_terisi": bool(self.ai_api_key),
+            "siap": self.ai_siap,
+            "timeout": self.ai_timeout,
+        }
+
+    def dengan(self, **ubah) -> "Pengaturan":
+        """Salinan pengaturan dengan beberapa nilai diganti.
+
+        Dipakai untuk menyisipkan kredensial yang dikirim pengguna lewat
+        halaman web. Pengaturan asli milik server tidak ikut berubah, jadi
+        kunci milik satu pengguna tidak pernah menempel ke pengguna lain.
+        """
+        from dataclasses import replace
+
+        bersih = {k: v for k, v in ubah.items() if v not in (None, "")}
+        baru = replace(self, **bersih)
+        baru.__post_init__()
+        return baru
+
     @classmethod
     def dari_env(cls, env=None, pakai_env_file: bool = True) -> "Pengaturan":
         if env is None and pakai_env_file:

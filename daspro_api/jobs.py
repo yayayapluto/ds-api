@@ -12,8 +12,8 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .config import Pengaturan
-from .errors import JobBentrok, TidakDitemukan
+from daspro_api.config import Pengaturan
+from daspro_api.errors import JobBentrok, TidakDitemukan
 
 MENUNGGU = "menunggu"
 JALAN = "jalan"

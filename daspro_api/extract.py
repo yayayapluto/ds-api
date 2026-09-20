@@ -7,7 +7,7 @@ import re
 import zipfile
 from pathlib import Path
 
-from .errors import InputTidakValid
+from daspro_api.errors import InputTidakValid
 
 DOC = "word/document.xml"
 NS_T = re.compile(r"<w:t(?:\s[^>]*)?>(.*?)</w:t>", re.S)

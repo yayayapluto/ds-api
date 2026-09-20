@@ -12,8 +12,8 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .config import Pengaturan
-from .errors import GccTidakAda
+from daspro_api.config import Pengaturan
+from daspro_api.errors import GccTidakAda
 
 
 @dataclass

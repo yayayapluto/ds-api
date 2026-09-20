@@ -10,15 +10,15 @@ import zipfile
 from pathlib import Path
 from typing import Optional
 
-from .ai import KlienAi
-from .compiler import KompilatorC
-from .config import Pengaturan
-from .errors import AiGagal, InputTidakValid
-from .extract import cari_soal, teks_berkas
-from .prompts import prompt_analisis, prompt_kode, prompt_laporan, sistem_dasar
-from .report import susun, tulis
-from .sanitize import bersihkan, bersihkan_dalam, cari_pelanggar
-from .skillbridge import Skill
+from daspro_api.ai import KlienAi
+from daspro_api.compiler import KompilatorC
+from daspro_api.config import Pengaturan
+from daspro_api.errors import AiGagal, InputTidakValid
+from daspro_api.extract import cari_soal, teks_berkas
+from daspro_api.prompts import prompt_analisis, prompt_kode, prompt_laporan, sistem_dasar
+from daspro_api.report import susun, tulis
+from daspro_api.sanitize import bersihkan, bersihkan_dalam, cari_pelanggar
+from daspro_api.skillbridge import Skill
 
 WAJIB_IDENTITAS = ("nama", "nim", "kelas", "modul")
 
@@ -43,6 +43,9 @@ class Pipeline:
         self.skill = skill or Skill(pengaturan.skill_dir)
         self.klien = klien or KlienAi(pengaturan)
         self.gcc = KompilatorC(pengaturan)
+        # Pabrik klien. Pada pemakaian sungguhan selalu KlienAi, jadi kode C
+        # tetap ditulis oleh model asli. Pengujian boleh menggantinya.
+        self.buat_klien = KlienAi
 
     def periksa_siap(self) -> None:
         """Pastikan AI dan gcc siap sebelum pekerjaan dimulai.
@@ -54,14 +57,31 @@ class Pipeline:
         self.skill.periksa()
         self.gcc.periksa_gcc()
 
+    def klien_untuk(self, kredensial):
+        """Pilih klien AI: dari kredensial job, atau milik server.
+
+        Kredensial yang dikirim pengguna lewat halaman web tidak pernah
+        disimpan. Objek pengaturan salinannya hanya hidup selama pekerjaan
+        ini berjalan, lalu ikut terbuang bersama variabel lokalnya.
+        """
+        if not kredensial:
+            return self.klien
+        p = self.p.dengan(
+            ai_api_key=kredensial.get("api_key"),
+            ai_base_url=kredensial.get("base_url"),
+            ai_model=kredensial.get("model"),
+        )
+        return self.buat_klien(p)
+
     # --- alat bantu ------------------------------------------------------
     def _cek_batal(self, job) -> None:
         if job is not None and job.batal.is_set():
             raise InputTidakValid("pekerjaan dibatalkan")
 
-    def _minta_json(self, job, prompt: str, tahap: str) -> dict:
+    def _minta_json(self, job, prompt: str, tahap: str, klien=None) -> dict:
         self._cek_batal(job)
-        data = self.klien.lengkapi_json(prompt, sistem=sistem_dasar(self.skill))
+        klien = klien or self.klien
+        data = klien.lengkapi_json(prompt, sistem=sistem_dasar(self.skill))
         if not isinstance(data, dict):
             raise AiGagal("jawaban AI bukan objek JSON")
         return bersihkan_dalam(data)
@@ -81,9 +101,9 @@ class Pipeline:
         lkp = teks_berkas(Path(berkas_lkp)) if berkas_lkp else ""
         return {"modul": modul, "lkp": lkp, "soal_modul": cari_soal(modul)}
 
-    def analisis_soal(self, job, isi: dict, identitas: dict) -> dict:
+    def analisis_soal(self, job, isi: dict, identitas: dict, klien=None) -> dict:
         prompt = prompt_analisis(self.skill, isi["modul"], isi["lkp"], identitas)
-        data = self._minta_json(job, prompt, "analisis")
+        data = self._minta_json(job, prompt, "analisis", klien)
         soal = data.get("soal")
         if not isinstance(soal, list) or not soal:
             raise AiGagal("AI tidak mengembalikan daftar soal")
@@ -113,7 +133,9 @@ class Pipeline:
             identitas["judul_modul"] = str(data.get("judul") or "")
         return data
 
-    def tulis_semua_kode(self, job, analisis: dict, identitas: dict, folder: Path) -> list:
+    def tulis_semua_kode(
+        self, job, analisis: dict, identitas: dict, folder: Path, klien=None
+    ) -> list:
         hasil = []
         soal = analisis["soal"]
         total = len(soal)
@@ -135,6 +157,7 @@ class Pipeline:
                     job,
                     prompt_kode(self.skill, s, identitas, catatan_perbaikan),
                     "kode",
+                    klien,
                 )
                 kode = str(jawab.get("kode") or "").strip()
                 penjelasan = str(jawab.get("penjelasan") or "").strip()
@@ -247,7 +270,15 @@ class Pipeline:
             h["catatan"] = catatan
         return hasil_kode
 
-    def buat_laporan(self, job, isi: dict, analisis: dict, identitas: dict, hasil_kode: list) -> dict:
+    def buat_laporan(
+        self,
+        job,
+        isi: dict,
+        analisis: dict,
+        identitas: dict,
+        hasil_kode: list,
+        klien=None,
+    ) -> dict:
         pertanyaan = [
             q.get("pertanyaan")
             for bg in (analisis.get("bagian") or [])
@@ -258,7 +289,7 @@ class Pipeline:
         prompt = prompt_laporan(
             self.skill, isi["modul"], isi["lkp"], identitas, hasil_kode, pertanyaan
         )
-        return self._minta_json(job, prompt, "laporan")
+        return self._minta_json(job, prompt, "laporan", klien)
 
     # --- pengisian template docx ----------------------------------------
     def isi_template(self, job, berkas_lkp: Path, kerja: Path, laporan_ai: dict) -> dict:
@@ -318,31 +349,39 @@ class Pipeline:
         berkas_lkp=None,
         identitas=None,
         opsi=None,
+        kredensial=None,
     ) -> dict:
         opsi = opsi or {}
         folder = Path(job.folder) / "kerja"
         folder.mkdir(parents=True, exist_ok=True)
         identitas = rapikan_identitas(identitas or {})
 
+        # Kredensial dari job dipakai kalau ada. Kalau tidak, dipakai
+        # kredensial milik server. Kredensial job tidak pernah ditulis ke
+        # disk; hanya hidup selama pekerjaan ini berjalan.
+        klien = self.klien_untuk(kredensial)
+
         # AI, gcc, dan folder skill diperiksa di awal. Kalau ada yang belum
         # siap, pekerjaan berhenti di sini dengan pesan jelas, bukan gagal
         # di tengah setelah separuh berkas dibuat.
         job.maju("periksa", "Memeriksa kesiapan AI dan gcc.", 2)
-        self.periksa_siap()
+        klien.periksa()
+        self.skill.periksa()
+        self.gcc.periksa_gcc()
 
         job.maju("baca", "Membaca modul dan template LKP.", 3)
         isi = self.baca_masukan(Path(berkas_modul), berkas_lkp)
 
         job.maju("analisis", "Menyusun daftar soal dari modul.", 8)
-        analisis = self.analisis_soal(job, isi, identitas)
+        analisis = self.analisis_soal(job, isi, identitas, klien)
 
-        hasil_kode = self.tulis_semua_kode(job, analisis, identitas, folder)
+        hasil_kode = self.tulis_semua_kode(job, analisis, identitas, folder, klien)
 
         job.maju("uji", "Menjalankan program dengan nilai batas.", 55)
         hasil_kode = self.uji_semua(job, analisis, hasil_kode, folder)
 
         job.maju("laporan", "Menyusun isi laporan.", 72)
-        laporan_ai = self.buat_laporan(job, isi, analisis, identitas, hasil_kode)
+        laporan_ai = self.buat_laporan(job, isi, analisis, identitas, hasil_kode, klien)
 
         nomor = identitas.get("modul")
         job.maju("susun", "Merangkai berkas laporan.", 80)

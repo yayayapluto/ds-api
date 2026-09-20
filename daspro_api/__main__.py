@@ -15,9 +15,9 @@ import argparse
 import json
 import sys
 
-from .config import Pengaturan
-from .errors import DasproError
-from .skillbridge import Skill
+from daspro_api.config import Pengaturan
+from daspro_api.errors import DasproError
+from daspro_api.skillbridge import Skill
 
 
 def _tampilkan_setelan(p: Pengaturan) -> None:
