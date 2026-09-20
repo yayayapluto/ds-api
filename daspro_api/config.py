@@ -52,9 +52,7 @@ class Pengaturan:
     host: str = "127.0.0.1"
     port: int = 8787
     data_dir: Path = field(default_factory=lambda: FOLDER_BAWAAN)
-    skill_dir: Path = field(
-        default_factory=lambda: Path.home() / ".agents" / "skills" / "solve-daspro"
-    )
+    skill_dir: Path = field(default_factory=folder_skill_bawaan)
 
     ai_base_url: str = "https://api.openai.com/v1"
     ai_api_key: str = ""
@@ -115,12 +113,7 @@ class Pengaturan:
             host=ambil("DASPRO_HOST", "127.0.0.1"),
             port=_ke_int(ambil("DASPRO_PORT", "8787"), 8787),
             data_dir=Path(ambil("DASPRO_DATA_DIR", str(FOLDER_BAWAAN))),
-            skill_dir=Path(
-                ambil(
-                    "DASPRO_SKILL_DIR",
-                    str(Path.home() / ".agents" / "skills" / "solve-daspro"),
-                )
-            ),
+            skill_dir=Path(ambil("DASPRO_SKILL_DIR", str(folder_skill_bawaan()))),
             ai_base_url=base_url.rstrip("/"),
             ai_api_key=api_key,
             ai_model=model,
