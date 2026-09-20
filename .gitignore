@@ -1,0 +1,13 @@
+# Berkas kerja layanan, jangan ikut masuk repo.
+data/
+*.pyc
+__pycache__/
+.pytest_cache/
+.pyright/
+*.egg-info/
+build/
+dist/
+# Hasil uji coba
+tests/fixtures/*.pdf
+tests/fixtures/*.docx
+!tests/fixtures/.gitkeep

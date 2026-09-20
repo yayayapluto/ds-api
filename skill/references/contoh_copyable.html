@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>contoh jawaban LKP Modul 4 - Copyable</title>
+<style>*{box-sizing:border-box}body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;max-width:1000px;margin:0 auto;padding:20px;line-height:1.55;color:#111}h1{font-size:1.5rem}h2{margin-top:2em;border-bottom:2px solid #111;padding-bottom:4px;font-size:1.2rem}h3{font-size:1.05rem;color:#333}blockquote{background:#f4f4f4;border-left:4px solid #333;margin:8px 0;padding:8px 12px}table{border-collapse:collapse;width:100%;font-size:.9rem;margin:12px 0}th,td{border:1px solid #999;padding:6px 8px;text-align:left;vertical-align:top}th{background:#eee}.tbl-wrap{overflow-x:auto}code{background:#f0f0f0;padding:1px 5px;border-radius:4px;font-size:.88em}.qa{border:1px solid #ccc;border-radius:8px;margin:10px 0;overflow:hidden}.q{background:#f7f7f7;padding:8px 10px;display:flex;gap:8px;align-items:flex-start;font-weight:600}.a{padding:8px 10px;display:flex;gap:8px;align-items:flex-start}.qn{color:#555;flex:none}.txt{flex:1;user-select:text}.cp,.cp-block{flex:none;font-size:.72rem;border:1px solid #888;background:#fff;border-radius:6px;padding:2px 8px;cursor:pointer}.cp:hover,.cp-block:hover{background:#111;color:#fff;border-color:#111}.codeblock{position:relative;background:#fafafa;border:1px solid #ccc;border-radius:8px;margin:12px 0}.codeblock pre{margin:0;padding:12px;overflow-x:auto}.cp-block{position:absolute;top:8px;right:8px}.li,.li-num,.chk,p.copyable{display:flex;gap:8px;align-items:flex-start;background:#fbfbfb;border:1px solid #e2e2e2;border-radius:6px;padding:6px 10px;margin:6px 0}.toolbar{position:sticky;top:0;background:#fff;border-bottom:2px solid #111;padding:10px 0;display:flex;gap:10px;align-items:center;z-index:10}#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 18px;border-radius:20px;opacity:0;transition:opacity .2s;pointer-events:none}#toast.show{opacity:1}@media print{.cp,.cp-block,.toolbar{display:none}}</style>
+</head>
+<body>
+<div class="toolbar"><strong>contoh jawaban LKP Modul 4 - versi copyable</strong><span style="font-size:.85rem;color:#555">Klik tombol copy di tiap sel / jawaban untuk salin teks bersih (tanpa tombol).</span></div>
+<h1>Jawaban LKP Modul 4 - IF, IF-ELSE, ELSE-IF, IF DI DALAM IF, DAN SWITCH</h1>
+<blockquote>Nama: - / NIM: - / Kelas: -</blockquote>
+<blockquote>Sumber aturan: <code>Modul_Praktikum_4_Pernyataan_Kondisional - MHS - FINAL.pdf</code></blockquote>
+<blockquote>Actual Output di bawah ini hasil eksekusi nyata (gcc, program di repo), bukan karangan.</blockquote>
+<hr>
+<h2>IV.1 Praktikum Terbimbing 1 - Status Kelulusan (<code>latihan_01.c</code>)</h2>
+<h3>Contoh pengujian (Actual diisi dari run)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Nilai</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">-5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Nilai tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai tidak valid.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">0</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Belum lulus</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Status: Belum lulus</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">59.99</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Belum lulus</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Status: Belum lulus</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">60</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Lulus</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Status: Lulus</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">100</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Lulus</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Status: Lulus</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">105</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Nilai tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai tidak valid.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Pertanyaan analisis</h3>
+<div class="qa"><div class="q"><span class="qn">1.</span> <span class="txt"><strong>Mengapa validasi dilakukan sebelum penentuan kelulusan?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Agar input di luar 0-100 tidak pernah masuk ke cabang Lulus/Belum lulus. <code>if-else-if</code> berhenti di kondisi pertama yang true, jadi guard invalid di atas menyaring sampah sebelum klasifikasi.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">2.</span> <span class="txt">**Mengapa digunakan operator <code>||</code>?**</span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Kondisi invalid adalah gabungan dua sisi: <code>&lt; 0 ATAU &gt; 100</code>. Satu nilai cukup memenuhi salah satunya untuk dinyatakan invalid. Kalau pakai <code>&amp;&amp;</code>, tidak ada angka yang sekaligus <code>&lt; 0 DAN &gt; 100</code>, kondisi mati total.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">3.</span> <span class="txt"><strong>Apa yang terjadi apabila validasi ditempatkan setelah kondisi kelulusan?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Nilai invalid bocor ke kategori. Contoh <code>105 &gt;= 60</code> true -&gt; tercetak <code>Lulus</code>. Contoh <code>-5</code> jatuh ke <code>else</code> -&gt; tercetak <code>Belum lulus</code>. Pesan invalid tidak pernah keluar.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">4.</span> <span class="txt"><strong>Mengapa nilai 60 dinyatakan lulus?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Batas kelulusan <code>nilai &gt;= 60.0</code>, dan 60 memenuhi <code>&gt;=</code>. Kalau ditulis <code>&gt; 60</code>, 60 jadi Belum lulus - melanggar aturan modul.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">5.</span> <span class="txt">**Apa perbedaan <code>&gt; 100</code> dan <code>&gt;= 100</code>?**</span><button class="cp">copy</button></div>
+<div class="a"><span class="txt"><code>&gt; 100</code>: 100 masih valid (Lulus). <code>&gt;= 100</code>: 100 ikut dibuang sebagai invalid. Aturan modul: 100 valid, jadi yang benar <code>&gt; 100</code>.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">6.</span> <span class="txt"><strong>Apakah 59.99 termasuk lulus?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Tidak. <code>59.99 &gt;= 60.0</code> false -&gt; <code>Belum lulus</code>. Batas tegas di 60, tidak ada pembulatan.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">7.</span> <span class="txt"><strong>Berapa banyak kemungkinan jalur keluaran?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">3 jalur, saling eksklusif: (a) tidak valid, (b) Lulus, (c) Belum lulus. Satu eksekusi tepat satu jalur.</span><button class="cp">copy</button></div></div>
+<hr>
+<h2>IV.2 Praktikum Terbimbing 2 - Huruf Mutu (<code>latihan_02.c</code>)</h2>
+<h3>Pengujian nilai batas</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Input</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Huruf Mutu</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">0</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">E</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai akhir : 0.00</code>, <code>Huruf mutu : E</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">49.99</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">E</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai akhir : 49.99</code>, <code>Huruf mutu : E</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">50</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">D</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai akhir : 50.00</code>, <code>Huruf mutu : D</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">64.99</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">D</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai akhir : 64.99</code>, <code>Huruf mutu : D</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">65</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">C</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai akhir : 65.00</code>, <code>Huruf mutu : C</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">74.99</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">C</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai akhir : 74.99</code>, <code>Huruf mutu : C</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">75</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">B</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai akhir : 75.00</code>, <code>Huruf mutu : B</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">85</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">A</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai akhir : 85.00</code>, <code>Huruf mutu : A</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">-1 / 101</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">(tidak valid)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai tidak valid.</code> + <code>return 1</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Pertanyaan analisis</h3>
+<div class="qa"><div class="q"><span class="qn">1.</span> <span class="txt"><strong>Mengapa kondisi dimulai dari nilai tertinggi?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt"><code>else-if</code> menang di kondisi pertama yang true. Dari atas (<code>&gt;= 85</code> dulu), nilai 90 langsung terkunci A. Kalau dari bawah (<code>&gt;= 50</code> dulu), 90 sudah menang di D dan cabang A tidak pernah tercapai.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">2.</span> <span class="txt"><strong>Hasil untuk 84.99?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">B. <code>84.99 &gt;= 85</code> false, <code>&gt;= 75</code> true -&gt; B. Bukti batas atas B eksklusif di 85.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">3.</span> <span class="txt"><strong>Hasil untuk 75?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">B. <code>75 &gt;= 85</code> false, <code>75 &gt;= 75</code> true -&gt; B. Batas bawah inklusif (<code>&gt;=</code>).</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">4.</span> <span class="txt"><strong>Hasil untuk 49.99?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">E. Semua cabang <code>&gt;= 50</code> gagal -&gt; jatuh ke <code>else</code> -&gt; E.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">5.</span> <span class="txt">**Tujuan <code>return 1;</code> setelah input invalid?**</span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Stop total. Tanpa itu program lanjut klasifikasi dan mencetak huruf mutu palsu untuk input sampah. <code>return 1</code> juga sinyal exit-status non-nol (error) ke OS.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">6.</span> <span class="txt"><strong>Apakah seluruh rentang 0-100 ditangani?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Ya. A (85-100), B (75-&lt;85), C (65-&lt;75), D (50-&lt;65), E (0-&lt;50). Tidak ada lubang; batas atas tiap cabang dijamin oleh kegagalan cabang di atasnya.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">7.</span> <span class="txt"><strong>Apakah ada rentang tumpang tindih?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Tidak secara eksekusi. Secara teks <code>&gt;= 75</code> dan <code>&gt;= 85</code> memang overlap, tapi <code>else-if</code> membuat yang bawah hanya diperiksa jika yang atas gagal - jadi partisi bersih.</span><button class="cp">copy</button></div></div>
+<hr>
+<h2>IV.3 Praktikum Terbimbing 3 - Kalkulator <code>switch</code> (<code>latihan_03.c</code>)</h2>
+<h3>Pengujian jalur eksekusi</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">TC</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Pilihan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Angka 1</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Angka 2</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Result</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Result</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">15.00</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Hasil: 15.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">5.00</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Hasil: 5.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">50.00</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Hasil: 50.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">2.00</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Hasil: 2.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">0</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Pembagian dengan nol tidak diperbolehkan.</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">sama persis</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">6</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">7</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Pilihan tidak tersedia.</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">sama persis</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Pertanyaan analisis</h3>
+<div class="qa"><div class="q"><span class="qn">1.</span> <span class="txt">**Mengapa <code>switch</code> sesuai?**</span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Pilihan berupa nilai diskret tunggal (<code>int</code> 1-4). <code>switch-case</code> memetakan satu ekspresi ke cabang/menu secara langsung; <code>if-else</code> rantai perbandingan satu-satu lebih bertele-tele untuk kasus ini.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">2.</span> <span class="txt"><strong>Mengapa pembagian butuh pemeriksaan tambahan?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Pembagi nol secara matematis tak terdefinisi dan crash (<code>SIGFPE</code> untuk integer; <code>inf</code> sesat untuk float). Guard <code>if (angka_2 != 0.0)</code> mencegah operasi sebelum terjadi.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">3.</span> <span class="txt">**Apa jika <code>break</code> setelah <code>case 1</code> dihapus?**</span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Jalan terus ke case berikutnya: hasil penjumlahan dicetak, lalu program lanjut ke <code>case 2</code> dan mencetak hasil pengurangan juga. Satu pilihan -&gt; dua output.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">4.</span> <span class="txt"><strong>Apa jika pengguna memilih 7?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Masuk <code>default</code> -&gt; <code>Pilihan tidak tersedia.</code> Tanpa <code>default</code>, program diam tanpa pesan - user bingung.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">5.</span> <span class="txt">**Apakah <code>switch</code> bisa langsung memeriksa <code>angka_2 != 0</code>?**</span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Tidak. <code>case</code> hanya label nilai konstan (<code>case 1:</code>, <code>case 4:</code>), bukan ekspresi kondisi. Pengecekan rentang/kondisi wilayah <code>if</code>.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">6.</span> <span class="txt">**Mengapa <code>if</code> dipakai di dalam <code>case 4</code>?**</span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Karena itu satu-satunya cabang yang punya sub-kondisi (pembagi nol atau tidak). Pola <code>switch</code> (pilih operasi) + <code>if</code> di dalam (validasi khusus cabang itu) - gabungan yang tepat guna.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">7.</span> <span class="txt"><strong>Berapa banyak jalur eksekusi?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">6 jalur: case 1, 2, 3, case 4-berhasil, case 4-gagal (nol), default. Satu run tepat satu jalur.</span><button class="cp">copy</button></div></div>
+<hr>
+<h2>V.1 Tracing (<code>tracing.c</code>: if di dalam if untuk nilai dan kehadiran)</h2>
+<h3>Tracing 1 - kondisi awal (<code>nilai = 78, kehadiran = 80</code>)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Langkah</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Kondisi/Pernyataan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">nilai</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">kehadiran</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">status</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Hasil Kondisi</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>nilai = 78</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>kehadiran = 80</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">80</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>nilai &gt;= 75</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">80</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">true</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>kehadiran &gt;= 75</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">80</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">true</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>status = &#x27;L&#x27;</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">80</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">L</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<p class="copyable"><span class="txt"><strong>Prediksi output:</strong> <code>Status: L</code></span><button class="cp">copy</button></p>
+<h3>Tracing 2 - kehadiran diubah 70 (<code>nilai = 78, kehadiran = 70</code>)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Langkah</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Kondisi/Pernyataan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">nilai</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">kehadiran</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">status</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Hasil Kondisi</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>nilai = 78</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>kehadiran = 70</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">70</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>nilai &gt;= 75</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">70</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">true</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>kehadiran &gt;= 75</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">70</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">false</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>status = &#x27;T&#x27;</code> (else dalam)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">78</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">70</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">T</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<p class="copyable"><span class="txt"><strong>Prediksi output:</strong> <code>Status: T</code></span><button class="cp">copy</button></p>
+<h3>Tracing 3 - nilai diubah 60 (<code>nilai = 60, kehadiran = 80</code>)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Langkah</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Kondisi/Pernyataan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">nilai</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">kehadiran</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">status</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Hasil Kondisi</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>nilai = 60</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">60</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>kehadiran = 80</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">60</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">80</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>nilai &gt;= 75</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">60</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">80</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">false</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>status = &#x27;T&#x27;</code> (else luar, kehadiran tidak diperiksa)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">60</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">80</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">T</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<p class="copyable"><span class="txt"><strong>Prediksi output:</strong> <code>Status: T</code></span><button class="cp">copy</button></p>
+<h3>Perbandingan jalur ketiga tracing</h3>
+<div class="li"><span class="txt">Tracing 1: luar true -&gt; dalam true -&gt; <code>&#x27;L&#x27;</code>. Satu-satunya jalur lulus.</span><button class="cp">copy</button></div>
+<div class="li"><span class="txt">Tracing 2: luar true -&gt; dalam false -&gt; <code>&#x27;T&#x27;</code> (gagal di kehadiran).</span><button class="cp">copy</button></div>
+<div class="li"><span class="txt">Tracing 3: luar false -&gt; langsung <code>&#x27;T&#x27;</code> (kehadiran tidak pernah dicek, karena kondisi luar sudah gagal maka cabang dalam tidak dijalankan).</span><button class="cp">copy</button></div>
+<div class="li"><span class="txt">Output aktual run kondisi awal: <code>Status: L</code> - cocok dengan prediksi Tracing 1.</span><button class="cp">copy</button></div>
+<hr>
+<h2>V.2 Eksperimen (<code>eksperimen.c</code>, basis <code>nilai = 75</code>, <code>if (nilai &gt;= 60)</code>)</h2>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">No.</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Perubahan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Prediksi</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Hasil Aktual</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Error/Warning</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Penjelasan</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>&gt;= 60</code> -&gt; <code>&gt; 60</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tetap <code>Lulus.</code> (75 &gt; 60 true)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Lulus.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">bersih</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">75 di atas kedua batas; beda baru terlihat di nilai = 60</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>nilai</code> -&gt; 60</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Lulus.</code> (60 &gt;= 60 true)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Lulus.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">bersih</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Bukti batas inklusif</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>&gt;=</code> -&gt; <code>&lt;=</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Belum lulus.</code> (75 &lt;= 60 false)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Belum lulus.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">bersih</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Arti kondisi terbalik total</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>==</code> -&gt; <code>=</code> (<code>if (nilai = 60)</code>)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Lulus.</code> paksa + warning</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Lulus.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>warning: suggest parentheses around assignment used as truth value [-Wparentheses]</code> (terverifikasi)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Ini assignment, bukan banding. <code>nilai</code> jadi 60, nilai ekspresi 60 = true -&gt; selalu Lulus berapa pun input awal</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Hapus kurung kurawal blok if</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tetap jalan normal</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Lulus.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">bersih</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Satu pernyataan boleh tanpa <code>{}</code>; gaya modul tetap mewajibkan <code>{}</code> agar aman</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">6</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Dua pernyataan tanpa <code>{}</code> + <code>else</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><strong>Compile error</strong></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">gagal kompilasi</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>error: &#x27;else&#x27; without a previous &#x27;if&#x27;</code> (terverifikasi)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>printf</code> kedua memutus ikatan if-else; <code>else</code> jadi yatim. Bukti kenapa <code>{}</code> wajib untuk multi-statement</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">7</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Kategori dari batas terendah (<code>&gt;= 50</code> dulu)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Nilai 90 salah jadi D</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">D untuk 90 (sesuai contoh modul)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">bersih (bug logika, bukan sintaks)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Cabang pertama yang true menang; batas rendah menelan semua nilai besar</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">8</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Hapus <code>break</code> satu case</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Jalan terus ke case berikutnya, dua output</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">dua <code>printf</code> keluar sekaligus</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>warning: this statement may fall through [-Wimplicit-fallthrough=]</code> (terverifikasi di debugging_b4)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tanpa <code>break</code>, eksekusi nyelonong ke case berikut</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">9</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Hapus <code>default</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Pilihan liar diam saja</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">tidak ada output</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">bersih</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak ada cabang cocok + tidak ada fallback = sunyi; user tanpa pesan</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>(nilai &gt;= 0) &amp;&amp; (nilai &lt;= 100)</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">true untuk 75, lanjut klasifikasi</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">true</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">bersih</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Validasi rentang gabungan AND: kedua sisi harus true; pola guard standar modul</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2>VI. Debugging Challenge (<code>debugging_b4.c</code> -&gt; <code>debugging.c</code>)</h2>
+<h3>Hasil kompilasi awal (<code>gcc -Wall -Wextra debugging_b4.c</code>)</h3>
+<div class="codeblock"><button class="cp-block">Salin kode</button><pre><code>warning: format &#x27;%d&#x27; expects argument of type &#x27;int *&#x27;, but argument 2 has type &#x27;int&#x27; [-Wformat=] (baris 8)
+warning: this statement may fall through [-Wimplicit-fallthrough=] (baris 37 -&gt; case 2)
+warning: &#x27;usia&#x27; is used uninitialized [-Wuninitialized] (baris 8)</code></pre></div>
+<h3>Tabel debugging</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">No.</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Bagian yang Salah</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Jenis Kesalahan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Penyebab</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Perbaikan</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Baris 8: <code>scanf(&quot;%d&quot;, usia);</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Runtime</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>scanf</code> butuh alamat (<code>int*</code>). Tanpa <code>&amp;</code>, input ditulis ke alamat sampah; <code>usia</code> tidak terisi / crash</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>scanf(&quot;%d&quot;, &amp;usia);</code></span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Baris 14: <code>if (usia &lt; 0 &amp;&amp; usia &gt; 120)</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Logic</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>&amp;&amp;</code> mustahil: tidak ada angka yang sekaligus <code>&lt; 0 DAN &gt; 120</code>, validasi mati</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">`if ((usia &lt; 0) \</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">\</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">(usia &gt; 120))`</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>case 1</code> tanpa <code>break</code> (baris 36-37)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Logic</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Jalan terus ke <code>case</code> berikutnya: <code>harga = 50000</code> langsung ditimpa <code>100000</code>; Reguler bayar harga Premium</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tambah <code>break;</code> setelah <code>harga = 50000;</code></span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>double harga;</code> tanpa inisialisasi</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Runtime</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Jika tiket invalid, <code>harga</code> tidak pernah diisi tapi tetap dicetak -&gt; nilai sampah</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>double harga = 0.0;</code> + jangan cetak saat invalid</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Setelah <code>Usia tidak valid</code> program lanjut</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Logic</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak ada <code>return</code>; usia sampah tetap dikategorikan + dihitung harga</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>printf(...); return 1;</code></span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">6</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>default</code> + <code>printf harga</code> unconditional (baris 41-44)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Logic</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tiket invalid hanya warning lalu tetap cetak <code>Harga tiket: &lt;sampah&gt;</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>default: ...; tiket_valid = 0; break;</code> lalu <code>if (tiket_valid) printf harga;</code> (atau <code>return 1</code> di default)</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Pengujian setelah perbaikan (program <code>debugging.c</code>, hasil run nyata)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">TC</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Usia</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Jenis Tiket</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Result</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Result</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">25</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Dewasa; harga reguler</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori: Dewasa</code>, <code>Harga tiket: 50000.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">65</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Lansia; harga premium</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori: Lansia</code>, <code>Harga tiket: 100000.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">15</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Remaja; harga reguler</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori: Remaja</code>, <code>Harga tiket: 50000.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Usia tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Usia tidak valid.</code> (stop, tanpa kategori/harga)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">25</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">9</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Jenis tiket tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori: Dewasa</code>, <code>Jenis tiket tidak valid.</code> (tanpa harga)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Perubahan terpenting agar tidak lanjut hitung saat input invalid</h3>
+<p>Berhenti lebih awal: <code>return 1;</code> tepat setelah <code>Usia tidak valid</code>, dan flag <code>tiket_valid</code> yang menahan <code>printf(&quot;Harga tiket...&quot;)</code> hanya untuk tiket 1/2. Tanpa dua ini, program memproses data sampah dan mencetak harga fiktif - inti bugnya bukan angka harga, melainkan alur yang tidak pernah berhenti.</p>
+<hr>
+<h2>VII. Latihan Mandiri</h2>
+<h3>Level 1 - Positif/Negatif/Nol (<code>level_01.c</code>)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">TC</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Input</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Kategori</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-8</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Bilangan negatif</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori: Bilangan negatif</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">0</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Nol</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori: Nol</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">9</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Bilangan positif</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori: Bilangan positif</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Level 2 - Genap/Ganjil (<code>level_02.c</code>, <code>bilangan % 2 == 0</code>)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">TC</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Input</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Kategori</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">17</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Ganjil</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>17 merupakan bilangan ganjil.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">18</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Genap</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>18 merupakan bilangan genap.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">0</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Genap</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>0 merupakan bilangan genap.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Ganjil</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>-3 merupakan bilangan ganjil.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Level 3 - Validasi + Huruf Mutu (<code>level_03.c</code>)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Input</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">-1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai tidak valid.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">0</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">E</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu: E</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">49.99</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">E</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu: E</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">50</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">D</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu: D</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">65</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">C</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu: C</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">75</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">B</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu: B</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">85</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">A</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu: A</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">101</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai tidak valid.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Challenge - Tahun Kabisat (<code>level_04.c</code>)</h3>
+<p class="copyable"><span class="txt">Aturan: habis dibagi 400 -&gt; kabisat; habis dibagi 100 (tapi bukan 400) -&gt; bukan; habis dibagi 4 (tapi bukan 100) -&gt; kabisat; selain itu bukan. Urutan <code>if</code> persis urutan itu.</span><button class="cp">copy</button></p>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Tahun</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Result</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Result</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">2024</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Kabisat</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>2024 merupakan tahun kabisat.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2023</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Bukan kabisat</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>2023 bukan tahun kabisat.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Kabisat</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>2000 merupakan tahun kabisat.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">1900</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Bukan kabisat</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>1900 bukan tahun kabisat.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Kategori Kecepatan (<code>latihan_bonus_04.c</code>)</h3>
+<p class="copyable"><span class="txt">Aturan: <code>&lt; 40</code> Lambat; <code>40-80</code> Sedang (<code>&lt;= 80</code>); <code>81-120</code> Cepat (<code>&lt;= 120</code>); <code>&gt; 120</code> Sangat Cepat. Jebakan batas: 80 harus Sedang, jadi kondisi kedua <code>&lt;= 80</code> bukan <code>&lt; 80</code>.</span><button class="cp">copy</button></p>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">TC</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Kecepatan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Kategori</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">0</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Lambat</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori : Lambat</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">30</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Lambat</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori : Lambat</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">40</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sedang</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori : Sedang</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">80</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sedang</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori : Sedang</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">81</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Cepat</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori : Cepat</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">6</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">120</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Cepat</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori : Cepat</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">7</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">150</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sangat Cepat</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Kategori : Sangat Cepat</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2>VIII. Pengujian Struktur Kondisional (program huruf mutu, 12 kasus)</h2>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">No.</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Input</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Output</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai tidak valid.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">0</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">E</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : E</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">49.99</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">E</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : E</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">50</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">D</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : D</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">64.99</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">D</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : D</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">6</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">65</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">C</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : C</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">7</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">74.99</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">C</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : C</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">8</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">75</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">B</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : B</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">9</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">84.99</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">B</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : B</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">85</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">A</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : A</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">11</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">100</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">A</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Huruf mutu : A</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">12</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">101</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Nilai tidak valid.</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<p class="copyable"><span class="txt"><strong>Kesimpulan pengujian:</strong> tiap jalur (normal + tiap batas atas/bawah + invalid dua sisi) menghasilkan tepat satu output yang benar. Tidak ada lubang rentang, tidak ada overlap eksekusi, input invalid selalu ditolak sebelum klasifikasi.</span><button class="cp">copy</button></p>
+<hr>
+<h2>IX. Tugas Praktikum - Tarif Parkir (<code>tugas_modul_04_soal1.c</code>)</h2>
+<h3>1. Data Input</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Data Input</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Nama Variabel</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Tipe Data</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Keterangan</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">Jenis kendaraan</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>pilihan</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>int</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Kode 1 Motor, 2 Mobil, 3 Bus</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Durasi parkir</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>durasi</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>int</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Jam, minimal 1</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Status member</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>status</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>int</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">0 bukan member, 1 member</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>2. Ketentuan Tarif (tabel keputusan)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Jenis Kendaraan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Jam Pertama</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Jam Berikutnya</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Tarif Maksimal</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Validasi/Ketentuan</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">Sepeda motor</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp3.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp1.500</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp15.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Kode 1; durasi &gt;= 1; cap maksimal; diskon 10% jika member + durasi &gt;= 2</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Mobil</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp5.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp3.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp30.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Kode 2; aturan sama</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Bus</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp10.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp5.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp60.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Kode 3; aturan sama</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<p>Kode kendaraan di luar 1-3 -&gt; <code>Jenis kendaraan tidak valid.</code> Status selain 0/1 -&gt; <code>Status member tidak valid.</code> Durasi &lt; 1 -&gt; <code>Durasi tidak valid.</code> Semua invalid <code>return 1</code> sebelum hitung.</p>
+<h3>3. Proses Perhitungan</h3>
+<div class="li-num"><span class="qn">1.</span> <span class="txt"><code>switch(pilihan)</code> set tarif jam pertama / per jam / maksimal; <code>default</code> -&gt; pesan + <code>return 1</code>.</span><button class="cp">copy</button></div>
+<div class="li-num"><span class="qn">2.</span> <span class="txt">Validasi <code>durasi &lt; 1</code> -&gt; pesan + <code>return 1</code>. Validasi <code>status</code> bukan 0/1 -&gt; pesan + <code>return 1</code>.</span><button class="cp">copy</button></div>
+<div class="li-num"><span class="qn">3.</span> <span class="txt"><code>if (durasi == 1)</code> tarif awal = jam pertama, <code>else</code> tarif awal = jam pertama + (durasi-1) x tarif per jam.</span><button class="cp">copy</button></div>
+<div class="li-num"><span class="qn">4.</span> <span class="txt"><code>if (tarif_awal &gt; tarif_maksimal)</code> tarif awal = maksimal (cap).</span><button class="cp">copy</button></div>
+<div class="li-num"><span class="qn">5.</span> <span class="txt"><code>if ((status == 1) &amp;&amp; (durasi &gt;= 2))</code> diskon = 10% x tarif awal (kondisi gabungan; hanya satu <code>if</code>, tanpa nested dalam).</span><button class="cp">copy</button></div>
+<div class="li-num"><span class="qn">6.</span> <span class="txt">Total = tarif awal - diskon. Cetak rincian <code>%.2f</code>.</span><button class="cp">copy</button></div>
+<h3>5. Struktur Kondisional yang Digunakan</h3>
+<div class="chk"><span class="txt"><code>switch</code> jenis kendaraan + tarif</span><button class="cp">copy</button></div>
+<div class="chk"><span class="txt"><code>if-else</code> tarif berdasar durasi</span><button class="cp">copy</button></div>
+<div class="chk"><span class="txt"><code>if</code> tarif maksimal</span><button class="cp">copy</button></div>
+<div class="chk"><span class="txt">kondisi gabungan <code>(status == 1) &amp;&amp; (durasi &gt;= 2)</code> untuk diskon</span><button class="cp">copy</button></div>
+<div class="chk"><span class="txt">validasi kendaraan / durasi / status member (masing-masing <code>return 1</code>)</span><button class="cp">copy</button></div>
+<h3>7. Analisis IPO</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Komponen</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Uraian</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">Input</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>pilihan</code> (1-3), <code>durasi</code> (int &gt;= 1), <code>status</code> (0/1) via <code>scanf</code></span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Process</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">switch tarif -&gt; validasi -&gt; tarif awal (if-else durasi) -&gt; cap maksimal (if) -&gt; diskon member (if gabungan) -&gt; total</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Output</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rincian: jenis kendaraan, durasi, tarif awal, diskon, total bayar (<code>Rp%.2f</code>)</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Tabel keputusan (kondisi -&gt; tindakan)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Kondisi/Variabel</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Kemungkinan Nilai</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Keputusan/Tindakan</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">Jenis kendaraan</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">1 / 2 / 3 / selain itu</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Motor (3000/1500/15000) / Mobil (5000/3000/30000) / Bus (10000/5000/60000) / <code>Jenis kendaraan tidak valid.</code> + <code>return 1</code></span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Durasi valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">&lt; 1 / &gt;= 1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Durasi tidak valid.</code> + <code>return 1</code> / lanjut hitung</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Durasi = 1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">ya / tidak</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>tarif_awal</code> = tarif jam pertama / lanjut uji Durasi &gt; 1</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Durasi &gt; 1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">ya / tidak</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>tarif_awal</code> = jam pertama + (durasi-1) x per jam / - (sudah ditangani cabang = 1)</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Tarif &gt; maksimum</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">ya / tidak</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>tarif_awal</code> = <code>tarif_maksimal</code> / biarkan</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">Member dan durasi &gt;= 2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">status = 1 &amp; durasi &gt;= 2 / selain itu</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">diskon = 10% x <code>tarif_awal</code> / diskon = 0</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Trace table (data uji: Mobil, 5 jam, member - expected total Rp15.300)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">Langkah</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Kondisi/Pernyataan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Variabel yang Berubah</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Nilai Setelah Langkah</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">input pilihan=2, durasi=5, status=1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">pilihan, durasi, status</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">2, 5, 1</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">switch case 2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">jam pertama, per jam, maksimal</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">5000, 3000, 30000</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">durasi &lt; 1?</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">false, lanjut</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">status valid?</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">true (1), lanjut</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">durasi == 1?</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">false -&gt; tarif_awal = 5000 + 4x3000</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">6</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">tarif_awal</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">tarif_awal</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">17000</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">7</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">tarif_awal &gt; 30000?</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">false</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">8</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">status==1 &amp;&amp; durasi&gt;=2?</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">diskon</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">true -&gt; 1700</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">9</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">total = 17000 - 1700</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">total_bayar</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">15300</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">cetak rincian</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">-</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Total bayar Rp15300.00</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<h3>Tabel pengujian (10 kasus, Actual dari run nyata, kompilasi bersih tanpa warning)</h3>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">No.</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Kendaraan</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Durasi</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Member</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Result</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Result</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Motor</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp3.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Tarif awal : Rp3000.00</code>, <code>Total bayar : Rp3000.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Motor</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp4.500</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Tarif awal : Rp4500.00</code>, <code>Total bayar : Rp4500.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Motor</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Ya</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp4.050</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Diskon : Rp450.00</code>, <code>Total : Rp4050.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Mobil</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Ya</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp15.300</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Tarif awal : Rp17000.00</code>, <code>Diskon : Rp1700.00</code>, <code>Total : Rp15300.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Mobil</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">20</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp30.000 (cap)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Tarif awal : Rp30000.00</code> (5000+19x3000=62000 -&gt; dicap)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">6</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Bus</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp20.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Tarif awal : Rp20000.00</code>, <code>Total : Rp20000.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">7</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Bus</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">20</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Ya</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp54.000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Tarif awal : Rp60000.00</code> (cap), <code>Diskon : Rp6000.00</code>, <code>Total : Rp54000.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">8</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Kode 5</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Input tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Jenis kendaraan tidak valid.</code> (stop)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">9</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Mobil</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">0</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Tidak</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Durasi tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Durasi tidak valid.</code> (stop)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">10</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Mobil</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Status 4</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Status tidak valid</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Status member tidak valid.</code> (stop)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<p class="copyable"><span class="txt">Kompilasi: <code>gcc -Wall -Wextra</code> bersih, tanpa error/warning.</span><button class="cp">copy</button></p>
+<h3>3. Status Diskon Member (<code>tugas_modul_04_soal2.c</code>)</h3>
+<p class="copyable"><span class="txt">Aturan: <code>switch</code> kode 1 -&gt; 5%, 2 -&gt; 10%, 3 -&gt; 15%, default -&gt; 0%. <code>harga_akhir = harga_awal - harga_awal x persen/100.0</code>. Uang selalu <code>%.2f</code>. Kompilasi bersih.</span><button class="cp">copy</button></p>
+<div class="tbl-wrap"><table>
+<thead><tr>
+<th><span class="txt">TC</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Kode Member</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Harga Awal</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Diskon</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Expected Harga Akhir</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Actual Result</span><button class="cp" title="Salin sel">copy</button></th>
+<th><span class="txt">Status</span><button class="cp" title="Salin sel">copy</button></th>
+</tr></thead><tbody>
+<tr>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">1</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">100000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">5%</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp95000.00</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Diskon : 5%</code>, <code>Harga akhir : Rp95000.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">2</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">200000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">15%</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp170000.00</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Diskon : 15%</code>, <code>Harga akhir : Rp170000.00</code></span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+<tr>
+<td><span class="txt">3</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">9</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">50000</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">0%</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Rp50000.00</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt"><code>Diskon : 0%</code>, <code>Harga akhir : Rp50000.00</code> (via default)</span><button class="cp" title="Salin sel">copy</button></td>
+<td><span class="txt">Sesuai</span><button class="cp" title="Salin sel">copy</button></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2>Refleksi</h2>
+<div class="qa"><div class="q"><span class="qn">1.</span> <span class="txt"><strong>Bagian kondisi tersulit di tugas parkir?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Urutan validasi vs perhitungan. Validasi kendaraan/durasi/status harus tuntas + <code>return 1</code> sebelum satu pun rupiah dihitung; kalau cap maksimal atau diskon dikerjakan dulu, data invalid ikut terhitung.</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">2.</span> <span class="txt"><strong>Test case paling membantu menemukan kesalahan logika?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt">Kasus batas dan cap: Motor 2 jam member vs non-member (bedakan syarat <code>durasi &gt;= 2</code>), Mobil 20 jam (buktikan cap 30.000 menelan 62.000), dan ketiga invalid (buktikan stop, bukan sekadar pesan).</span><button class="cp">copy</button></div></div>
+<div class="qa"><div class="q"><span class="qn">3.</span> <span class="txt"><strong>Perbedaan switch, if-else, dan if di dalam if setelah tugas?</strong></span><button class="cp">copy</button></div>
+<div class="a"><span class="txt"><code>switch</code> untuk satu nilai diskret (kode kendaraan/member) - bersih. <code>if-else-if</code> untuk rentang/threshold (durasi, tarif, nilai). Kondisi gabungan <code>&amp;&amp;</code>/<code>\|\|</code> menggantikan if di dalam if yang dangkal; if di dalam if hanya layak kalau cabang dalam memang tidak relevan sebelum cabang luar lolos.</span><button class="cp">copy</button></div></div>
+<hr>
+<h2>Pernyataan penggunaan AI</h2>
+<p class="copyable"><span class="txt">Menggunakan AI: Saya menggunakan AI untuk membantu menjelaskan operator logika validasi, perilaku jalan terus ke case berikutnya pada switch, dan menyusun prediksi eksperimen. Hasil tersebut saya periksa melalui tracing manual, kompilasi <code>gcc -Wall -Wextra</code>, pengujian nilai batas, dan perbandingan dengan aturan pada soal/modul.</span><button class="cp">copy</button></p>
+<hr>
+<p style="font-size:.85rem;color:#555">Sumber konten: <code>contoh_jawaban_LKP_Modul_4.md</code> (1:1, hanya dibungkus tombol salin).</p>
+<div id="toast"></div>
+<script>function txt(el){return el.innerText;}
+function flash(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(function(){t.classList.remove('show');},1200);}
+async function copyText(s){try{await navigator.clipboard.writeText(s);return true;}catch(e){var ta=document.createElement('textarea');ta.value=s;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');return true;}catch(_){return false;}finally{ta.remove();}}}
+document.addEventListener('click',async function(ev){var b=ev.target.closest('.cp,.cp-block');if(!b)return;var wrap=b.closest('th,td,.q,.a,.li,.li-num,.chk,p.copyable,.codeblock');var t=wrap?wrap.querySelector('.txt,pre code'):null;var s=t?txt(t):'';if(!s.trim()){flash('Kosong');return;}var ok=await copyText(s);flash(ok?'Tersalin: '+s.slice(0,60):'Gagal menyalin');});</script>
+</body>
+</html>
