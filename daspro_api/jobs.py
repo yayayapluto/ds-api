@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import Pengaturan
-from .errors import DasproError, JobBentrok, TidakDitemukan
+from .errors import JobBentrok, TidakDitemukan
 
 MENUNGGU = "menunggu"
 JALAN = "jalan"
@@ -268,8 +268,8 @@ class GudangPekerjaan:
                 else:
                     job.selesai(hasil or {})
             except Exception as e:  # satu pekerjaan gagal tidak boleh mematikan server
-                pesan = e.pesan if isinstance(e, DasproError) else f"{type(e).__name__}: {e}"
-                job.gagal(pesan)
+                pesan = getattr(e, "pesan", None) or f"{type(e).__name__}: {e}"
+                job.gagal(str(pesan))
 
     def bersihkan_lama(self) -> int:
         """Hapus pekerjaan lama supaya disk tidak penuh."""

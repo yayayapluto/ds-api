@@ -33,6 +33,12 @@ tests/               pengujian dan berkas contoh
 data/                folder kerja, dibuat sendiri saat dijalankan
 ```
 
+Isi folder `skill/` disalin apa adanya dari skill `solve-daspro`. Isinya
+dijaga sama dengan aslinya, kecuali nama dan NIM pada berkas contoh yang
+sudah diganti tanda `-`. Karena itu folder ini tidak ikut diperiksa
+`pyright` (lihat `pyrightconfig.json`); kode yang diperiksa hanya yang ada
+di `daspro_api/` dan `tests/`.
+
 Tidak ada paket pihak ketiga yang wajib dipasang. Kalau modulnya PDF,
 pasang `pypdf` supaya teksnya bisa dibaca. Untuk mengisi template docx,
 pasang `lxml` (skrip skill memakainya).

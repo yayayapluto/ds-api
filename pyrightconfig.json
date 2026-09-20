@@ -1,8 +1,7 @@
 {
   "include": ["daspro_api", "tests"],
-  "exclude": ["**/__pycache__", "data"],
+  "exclude": ["**/__pycache__", "data", "skill"],
   "extraPaths": ["."],
   "typeCheckingMode": "basic",
-  "reportMissingImports": "warning",
   "pythonVersion": "3.11"
 }

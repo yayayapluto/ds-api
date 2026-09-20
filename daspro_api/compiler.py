@@ -122,10 +122,10 @@ class KompilatorC:
                 cwd=tempfile.gettempdir(),
                 env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"},
             )
-        except subprocess.TimeoutExpired as e:
+        except subprocess.TimeoutExpired:
             return HasilJalan(
                 kode_keluar=124,
-                keluaran=(e.stdout or b"").decode("utf-8", "replace") if isinstance(e.stdout, bytes) else (e.stdout or ""),
+                keluaran="",
                 pesan_error="program dihentikan karena berjalan terlalu lama",
                 timeout=True,
                 masukan=masukan,
