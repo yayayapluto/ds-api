@@ -20,7 +20,7 @@ ISI = """# pengaturan uji
 DASPRO_PORT=9111
 DASPRO_AI_API_KEY="kunci-rahasia"
 DASPRO_AI_MODEL=gpt-4o-mini   # komentar di belakang
-DASPRO_AI_PROVIDER='mock'
+DASPRO_AI_TIMEOUT='99'
 
 export DASPRO_HOST=0.0.0.0
 BARIS TANPA SAMA DENGAN
@@ -37,7 +37,7 @@ class UjiBerkasEnv(unittest.TestCase):
 
     def tearDown(self):
         for nama in ("DASPRO_PORT", "DASPRO_AI_API_KEY", "DASPRO_AI_MODEL",
-                     "DASPRO_AI_PROVIDER", "DASPRO_HOST", "KOSONG"):
+                     "DASPRO_AI_TIMEOUT", "DASPRO_HOST", "KOSONG"):
             os.environ.pop(nama, None)
         os.environ.update(self.simpan)
         import shutil
@@ -49,7 +49,7 @@ class UjiBerkasEnv(unittest.TestCase):
         self.assertEqual(isi["DASPRO_PORT"], "9111")
         self.assertEqual(isi["DASPRO_AI_API_KEY"], "kunci-rahasia")
         self.assertEqual(isi["DASPRO_AI_MODEL"], "gpt-4o-mini")
-        self.assertEqual(isi["DASPRO_AI_PROVIDER"], "mock")
+        self.assertEqual(isi["DASPRO_AI_TIMEOUT"], "99")
         self.assertEqual(isi["DASPRO_HOST"], "0.0.0.0")
         self.assertEqual(isi["KOSONG"], "")
         self.assertNotIn("BARIS TANPA SAMA DENGAN", isi)
@@ -69,7 +69,7 @@ class UjiBerkasEnv(unittest.TestCase):
         p = Pengaturan.dari_env(pakai_env_file=False)
         self.assertEqual(p.port, 9111)
         self.assertEqual(p.ai_api_key, "kunci-rahasia")
-        self.assertEqual(p.ai_provider, "mock")
+        self.assertEqual(p.ai_timeout, 99)
         self.assertTrue(p.ai_siap)
         self.assertEqual(p.host, "0.0.0.0")
 

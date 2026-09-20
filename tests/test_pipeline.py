@@ -10,6 +10,7 @@ import pathlib
 import shutil
 import sys
 import tempfile
+import threading
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -258,7 +259,7 @@ class UjiAlat(unittest.TestCase):
 
 class UjiKompilator(unittest.TestCase):
     def setUp(self):
-        self.p = Pengaturan(ai_provider="mock")
+        self.p = Pengaturan(ai_api_key="uji", ai_base_url="http://localhost")
         self.gcc = KompilatorC(self.p)
 
     def test_kompilasi_bersih_dan_jalan(self):
@@ -328,12 +329,14 @@ class UjiPipeline(unittest.TestCase):
         self.p = Pengaturan(
             data_dir=pathlib.Path(self.tmp),
             skill_dir=ROOT / "skill",
-            ai_provider="mock",
             job_workers=1,
         )
-        from daspro_api.ai import KlienAi
+        from mockai import KlienAiTiruan
 
-        self.klien = KlienAi(self.p, mock_balasan=[jawab_analisis, jawab_kode, jawab_kode, jawab_kode, jawab_laporan])
+        self.klien = KlienAiTiruan(
+            self.p,
+            balasan=[jawab_analisis, jawab_kode, jawab_kode, jawab_kode, jawab_laporan],
+        )
         self.pipeline = Pipeline(self.p, skill=Skill(self.p.skill_dir), klien=self.klien)
 
     def tearDown(self):
@@ -343,7 +346,7 @@ class UjiPipeline(unittest.TestCase):
         class Job:
             def __init__(self, folder):
                 self.folder = pathlib.Path(folder)
-                self.batal = __import__("threading").Event()
+                self.batal = threading.Event()
                 self.tahap = []
                 self.folder.mkdir(parents=True, exist_ok=True)
 

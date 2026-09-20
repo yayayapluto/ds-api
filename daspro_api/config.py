@@ -60,7 +60,6 @@ class Pengaturan:
     ai_timeout: int = 180
     ai_max_tokens: int = 8192
     ai_temperature: float = 0.2
-    ai_provider: str = "auto"  # auto | openai | mock
 
     gcc: str = "gcc"
     run_timeout: int = 5
@@ -84,10 +83,12 @@ class Pengaturan:
 
     @property
     def ai_siap(self) -> bool:
-        """True kalau ada cara memanggil AI (mock dihitung siap)."""
-        if self.ai_provider == "mock":
-            return True
-        return bool(self.ai_base_url and self.ai_api_key)
+        """True kalau layanan AI sudah bisa dipanggil.
+
+        Kunci dan alamat wajib ada. Tidak ada mode jawaban tiruan, supaya
+        kode C yang dihasilkan selalu datang dari model sungguhan.
+        """
+        return bool(self.ai_api_key and self.ai_base_url and self.ai_model)
 
     @property
     def max_upload_bytes(self) -> int:
@@ -126,7 +127,6 @@ class Pengaturan:
             ai_timeout=_ke_int(ambil("DASPRO_AI_TIMEOUT", "180"), 180),
             ai_max_tokens=_ke_int(ambil("DASPRO_AI_MAX_TOKENS", "8192"), 8192),
             ai_temperature=_ke_float(ambil("DASPRO_AI_TEMPERATURE", "0.2"), 0.2),
-            ai_provider=ambil("DASPRO_AI_PROVIDER", "auto").strip().lower(),
             gcc=ambil("DASPRO_GCC", "gcc"),
             run_timeout=_ke_int(ambil("DASPRO_RUN_TIMEOUT", "5"), 5),
             memory_mb=_ke_int(ambil("DASPRO_MEMORY_MB", "256"), 256),

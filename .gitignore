@@ -10,7 +10,27 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+
 # Hasil uji coba
 tests/fixtures/*.pdf
 tests/fixtures/*.docx
 !tests/fixtures/.gitkeep
+
+# Berkas bantuan alat editor dan asisten kode. Bukan bagian layanan,
+# jadi tidak ikut masuk repo.
+.code-review-graph/
+.claude/
+.codebuddy/
+.gemini/
+.kiro/
+.qoder/
+.github/instructions/
+.cursorrules
+.windsurfrules
+.mcp.json
+opencode.jsonc
+AGENTS.md
+CLAUDE.md
+CODEBUDDY.md
+GEMINI.md
+QODER.md

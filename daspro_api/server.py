@@ -25,6 +25,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from . import __version__
+from .ai import KlienAi
 from .compiler import KompilatorC
 from .config import Pengaturan
 from .errors import DasproError, InputTidakValid, TidakDitemukan
@@ -55,13 +56,18 @@ NAMA_BERKAS_AMAN = re.compile(r"^[A-Za-z0-9._/-]+$")
 class LayananDaspro:
     """Kumpulan hal yang dipakai semua permintaan: pengaturan dan pekerjaan."""
 
-    def __init__(self, pengaturan: Pengaturan):
+    def __init__(self, pengaturan: Pengaturan, wajib_ai: bool = True):
         self.p = pengaturan
         self.p.data_dir.mkdir(parents=True, exist_ok=True)
         self.skill = Skill(pengaturan.skill_dir)
         self.gcc = KompilatorC(pengaturan)
+        self.klien = KlienAi(pengaturan)
+        # Layanan ini tidak boleh jalan tanpa AI: kode C wajib datang dari
+        # model sungguhan, bukan jawaban tiruan.
+        if wajib_ai:
+            self.klien.periksa()
         self.pekerjaan = GudangPekerjaan(pengaturan)
-        self.pipeline = Pipeline(pengaturan, skill=self.skill)
+        self.pipeline = Pipeline(pengaturan, skill=self.skill, klien=self.klien)
         self.unggahan = self.p.data_dir / "unggahan"
         self.unggahan.mkdir(parents=True, exist_ok=True)
         self.mulai = time.time()
@@ -181,7 +187,6 @@ class Penanganan(BaseHTTPRequestHandler):
                     "folder_skill": str(self.layanan.skill.folder),
                     "ai_siap": p.ai_siap,
                     "ai_model": p.ai_model,
-                    "ai_provider": p.ai_provider,
                     "gcc": self.layanan.gcc.periksa_gcc(),
                     "jumlah_pekerjaan": len(self.layanan.pekerjaan.daftar(1000)),
                 },
@@ -410,9 +415,14 @@ class Penanganan(BaseHTTPRequestHandler):
         self._kirim(200, {"ok": True, **laporan, "berkas": hasil.name})
 
 
-def buat_server(pengaturan: Pengaturan) -> ThreadingHTTPServer:
-    """Siapkan server HTTP siap dijalankan."""
-    layanan = LayananDaspro(pengaturan)
+def buat_server(pengaturan: Pengaturan, wajib_ai: bool = True) -> ThreadingHTTPServer:
+    """Siapkan server HTTP siap dijalankan.
+
+    `wajib_ai` hanya dimatikan oleh pengujian, yang memakai klien AI tiruan.
+    Pada pemakaian sungguhan nilainya selalu true, sehingga layanan menolak
+    jalan kalau AI belum diatur.
+    """
+    layanan = LayananDaspro(pengaturan, wajib_ai=wajib_ai)
     handler = type("PenangananSiap", (Penanganan,), {"layanan": layanan})
     handler.batas_unggah = pengaturan.max_upload_bytes
     httpd = ThreadingHTTPServer((pengaturan.host, pengaturan.port), handler)

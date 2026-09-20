@@ -44,6 +44,16 @@ class Pipeline:
         self.klien = klien or KlienAi(pengaturan)
         self.gcc = KompilatorC(pengaturan)
 
+    def periksa_siap(self) -> None:
+        """Pastikan AI dan gcc siap sebelum pekerjaan dimulai.
+
+        Dipanggil di awal `kerjakan` supaya pekerjaan gagal cepat dengan
+        pesan jelas, bukan berhenti di tengah jalan setelah berkas dibuat.
+        """
+        self.klien.periksa()
+        self.skill.periksa()
+        self.gcc.periksa_gcc()
+
     # --- alat bantu ------------------------------------------------------
     def _cek_batal(self, job) -> None:
         if job is not None and job.batal.is_set():
@@ -313,6 +323,12 @@ class Pipeline:
         folder = Path(job.folder) / "kerja"
         folder.mkdir(parents=True, exist_ok=True)
         identitas = rapikan_identitas(identitas or {})
+
+        # AI, gcc, dan folder skill diperiksa di awal. Kalau ada yang belum
+        # siap, pekerjaan berhenti di sini dengan pesan jelas, bukan gagal
+        # di tengah setelah separuh berkas dibuat.
+        job.maju("periksa", "Memeriksa kesiapan AI dan gcc.", 2)
+        self.periksa_siap()
 
         job.maju("baca", "Membaca modul dan template LKP.", 3)
         isi = self.baca_masukan(Path(berkas_modul), berkas_lkp)

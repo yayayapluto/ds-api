@@ -67,8 +67,13 @@ DASPRO_PORT=9000 python3 -m daspro_api
 ```
 
 Penyedia lain yang memakai antarmuka sama bisa dipakai dengan mengganti
-`DASPRO_AI_BASE_URL`, `DASPRO_AI_API_KEY`, dan `DASPRO_AI_MODEL`. Untuk uji
-coba tanpa internet, setel `DASPRO_AI_PROVIDER=mock`.
+`DASPRO_AI_BASE_URL`, `DASPRO_AI_API_KEY`, dan `DASPRO_AI_MODEL`.
+
+Layanan ini selalu memakai AI sungguhan. Tidak ada mode jawaban tiruan,
+supaya kode C yang dikumpulkan tidak pernah karangan. Kalau kunci belum
+diisi, layanan menolak jalan dan `--cek` memberi tahu apa yang kurang.
+`--cek` sekaligus mengirim satu pertanyaan kecil ke layanan AI untuk
+memastikan kunci dan alamatnya benar.
 
 ## Pengaturan
 
@@ -83,9 +88,8 @@ Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
 | `DASPRO_DATA_DIR` | `./data` | tempat berkas kerja |
 | `DASPRO_SKILL_DIR` | `./skill` | folder skill (skrip dan acuan gaya) |
 | `DASPRO_AI_BASE_URL` | `https://api.openai.com/v1` | alamat layanan AI |
-| `DASPRO_AI_API_KEY` | kosong | kunci layanan AI |
-| `DASPRO_AI_MODEL` | `gpt-4o-mini` | nama model |
-| `DASPRO_AI_PROVIDER` | `auto` | `auto`, `openai`, atau `mock` |
+| `DASPRO_AI_API_KEY` | kosong | kunci layanan AI (wajib diisi) |
+| `DASPRO_AI_MODEL` | `gpt-4o-mini` | nama model (wajib) |
 | `DASPRO_AI_TIMEOUT` | `180` | batas waktu satu panggilan AI (detik) |
 | `DASPRO_AI_MAX_TOKENS` | `8192` | batas panjang jawaban AI |
 | `DASPRO_GCC` | `gcc` | program kompilator |

@@ -21,7 +21,7 @@ import zipfile
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from daspro_api.ai import KlienAi  # noqa: E402
+from mockai import KlienAiTiruan  # noqa: E402
 from daspro_api.config import Pengaturan  # noqa: E402
 from daspro_api.server import buat_server  # noqa: E402
 from daspro_api.skillbridge import Skill  # noqa: E402
@@ -68,14 +68,13 @@ class UjiServer(unittest.TestCase):
             port=0,
             data_dir=pathlib.Path(cls.tmp),
             skill_dir=ROOT / "skill",
-            ai_provider="mock",
             job_workers=1,
         )
-        cls.httpd = buat_server(cls.p)
+        cls.httpd = buat_server(cls.p, wajib_ai=False)
         # Klien AI tiruan dipasang setelah server dibuat, sebelum ada permintaan.
-        cls.httpd.RequestHandlerClass.layanan.pipeline.klien = KlienAi(
+        tiruan = KlienAiTiruan(
             cls.p,
-            mock_balasan=[
+            balasan=[
                 jawab_analisis,
                 jawab_kode,
                 jawab_kode,
@@ -83,6 +82,9 @@ class UjiServer(unittest.TestCase):
                 jawab_laporan,
             ],
         )
+        # Klien tiruan dipasang di layanan dan di pipeline.
+        cls.httpd.RequestHandlerClass.layanan.klien = tiruan
+        cls.httpd.RequestHandlerClass.layanan.pipeline.klien = tiruan
         cls.port = cls.httpd.server_address[1]
         cls.thread = threading.Thread(target=cls.httpd.serve_forever, daemon=True)
         cls.thread.start()

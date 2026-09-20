@@ -4,6 +4,10 @@ Hanya memakai pustaka bawaan Python (urllib), jadi tidak ada paket tambahan
 yang perlu dipasang. Alamat, kunci, dan nama model diambil dari pengaturan,
 sehingga penyedia lain yang memakai antarmuka sama (OpenRouter, DeepSeek,
 Groq, Ollama) bisa dipakai hanya dengan mengganti tiga nilai itu.
+
+Kelas ini selalu memanggil layanan AI sungguhan. Tidak ada mode jawaban
+tiruan di sini, supaya kode C yang dihasilkan tidak pernah karangan. Untuk
+keperluan pengujian, kelas tiruan ada di `tests/mockai.py`.
 """
 import json
 import re
@@ -67,26 +71,53 @@ def ambil_json(teks: str):
     raise AiGagal("JSON dari model tidak lengkap")
 
 
-def _rapikan_pesan(pesan: str) -> str:
-    """Buang awalan 'data:' yang dipakai mode streaming."""
-    return pesan.strip()
-
-
 class KlienAi:
-    """Pemanggil model bahasa. Punya dua mode: openai dan mock."""
+    """Pemanggil model bahasa sungguhan lewat antarmuka OpenAI."""
 
-    def __init__(self, pengaturan: Pengaturan, mock_balasan=None):
+    def __init__(self, pengaturan: Pengaturan):
         self.p = pengaturan
-        self._mock = list(mock_balasan or [])
 
-    # --- mode mock -------------------------------------------------------
-    def _mock_jawab(self, prompt: str) -> str:
-        if self._mock:
-            item = self._mock.pop(0)
-            if callable(item):
-                return str(item(prompt))
-            return str(item)
-        return "{}"
+    # --- pemeriksaan kesiapan -------------------------------------------
+    def periksa(self) -> None:
+        """Pastikan layanan AI sudah diatur sebelum dipakai.
+
+        Dipanggil saat server dinyalakan dan sebelum setiap pekerjaan mulai,
+        supaya pekerjaan tidak berjalan setengah jalan lalu gagal.
+        """
+        if not self.p.ai_api_key:
+            raise AiBelumDiatur(
+                "kunci layanan AI belum diisi. Isi DASPRO_AI_API_KEY di berkas "
+                ".env atau di variabel lingkungan."
+            )
+        if not self.p.ai_base_url:
+            raise AiBelumDiatur(
+                "alamat layanan AI belum diisi. Isi DASPRO_AI_BASE_URL, "
+                "misalnya https://api.openai.com/v1"
+            )
+        if not self.p.ai_model:
+            raise AiBelumDiatur("nama model belum diisi. Isi DASPRO_AI_MODEL.")
+
+    def uji_koneksi(self) -> dict:
+        """Kirim satu pertanyaan kecil untuk memastikan layanan AI menjawab.
+
+        Dipakai oleh `--cek` dan endpoint pengujian, supaya kesalahan kunci
+        atau alamat ketahuan sebelum modul dikerjakan.
+        """
+        self.periksa()
+        mulai = time.time()
+        jawab = self.lengkapi(
+            "Balas dengan satu kata: siap",
+            sistem="Jawab sesingkat mungkin.",
+            suhu=0.0,
+            token=16,
+        )
+        return {
+            "ok": True,
+            "model": self.p.ai_model,
+            "alamat": self.p.ai_base_url,
+            "jawaban": jawab.strip()[:80],
+            "detik": round(time.time() - mulai, 2),
+        }
 
     # --- panggilan sebenarnya -------------------------------------------
     def _post(self, url: str, isi: dict, header: dict) -> dict:
@@ -111,13 +142,7 @@ class KlienAi:
 
     def lengkapi(self, prompt: str, sistem: str = "", suhu=None, token=None) -> str:
         """Minta satu jawaban teks dari model."""
-        if self.p.ai_provider == "mock":
-            return self._mock_jawab(prompt)
-        if not self.p.ai_siap:
-            raise AiBelumDiatur(
-                "layanan AI belum diatur. Isi DASPRO_AI_API_KEY dan "
-                "DASPRO_AI_BASE_URL, atau pakai DASPRO_AI_PROVIDER=mock."
-            )
+        self.periksa()
 
         pesan = []
         if sistem:
@@ -137,9 +162,11 @@ class KlienAi:
         url = f"{self.p.ai_base_url}/chat/completions"
         hasil = self._post(url, isi, header)
         try:
-            return _rapikan_pesan(hasil["choices"][0]["message"]["content"])
+            return str(hasil["choices"][0]["message"]["content"]).strip()
         except (KeyError, IndexError, TypeError) as e:
-            raise AiGagal("bentuk jawaban layanan AI tidak dikenal", detail=str(hasil)[:600]) from e
+            raise AiGagal(
+                "bentuk jawaban layanan AI tidak dikenal", detail=str(hasil)[:600]
+            ) from e
 
     def lengkapi_json(self, prompt: str, sistem: str = "", suhu=None, token=None) -> dict:
         """Minta jawaban, lalu baca sebagai JSON.
