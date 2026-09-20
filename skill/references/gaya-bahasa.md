@@ -17,7 +17,7 @@ nama fitur C (misal `switch`), sebut namanya lalu jelaskan artinya dengan
 kalimat biasa.
 
 | Jangan tulis | Tulis |
-| --- | --- |
+|---|---|
 | `early-exit`, `early return` | program langsung berhenti, `return 1` di atas |
 | `guard clause`, `guard input` | pemeriksaan input tidak valid di bagian atas |
 | `short-circuit` | kondisi kedua tidak dicek kalau kondisi pertama sudah gagal |
@@ -53,7 +53,7 @@ karena karakter aslinya memang tidak boleh ditulis. Kalau tulisan kamu
 memuat salah satunya, ganti dengan versi keyboard di kolom terakhir.
 
 | Nama Unicode | Kode | Ganti dengan |
-| --- | --- | --- |
+|---|---|---|
 | Rightwards arrow | U+2192 | `->` (minus, lalu lebih besar) |
 | Leftwards arrow | U+2190 | `<-` |
 | Left right arrow | U+2194 | `<->` |

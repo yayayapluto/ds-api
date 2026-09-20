@@ -80,6 +80,13 @@ def main(argv=None) -> int:
     )
     parser.add_argument("--host", help="alamat yang didengarkan")
     parser.add_argument("--port", type=int, help="nomor port")
+    parser.add_argument(
+        "--env",
+        help="berkas .env yang dipakai (bawaan: .env di folder kerja)",
+    )
+    parser.add_argument(
+        "--tanpa-env", action="store_true", help="abaikan berkas .env"
+    )
     parser.add_argument("--setelan", action="store_true", help="tampilkan pengaturan")
     parser.add_argument("--cek", action="store_true", help="periksa persiapan lalu keluar")
     parser.add_argument("--versi", action="store_true", help="tampilkan versi")
@@ -91,7 +98,17 @@ def main(argv=None) -> int:
         print(__version__)
         return 0
 
-    p = Pengaturan.dari_env()
+    # Berkas .env dipasang lebih dulu, baru pengaturan dibaca.
+    dipasang = {}
+    if not args.tanpa_env:
+        from .envfile import muat_env
+
+        dipasang = muat_env(args.env)
+        if dipasang:
+            sumber = args.env or ".env"
+            print(f"pengaturan dari {sumber}: {', '.join(sorted(dipasang))}")
+
+    p = Pengaturan.dari_env(pakai_env_file=False)
     if args.host:
         p.host = args.host
     if args.port:

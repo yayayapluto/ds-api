@@ -10,14 +10,14 @@
 
 ### Contoh pengujian (Actual diisi dari run)
 
-| Nilai | Expected Output | Actual Output | Status |
+| Nilai | Expected Output  | Actual Output     | Status |
 | ----- | ----------------- | --------------------- | ------ |
-| -5 | Nilai tidak valid | `Nilai tidak valid.` | Sesuai |
-| 0 | Belum lulus | `Status: Belum lulus` | Sesuai |
-| 59.99 | Belum lulus | `Status: Belum lulus` | Sesuai |
-| 60 | Lulus | `Status: Lulus` | Sesuai |
-| 100 | Lulus | `Status: Lulus` | Sesuai |
-| 105 | Nilai tidak valid | `Nilai tidak valid.` | Sesuai |
+| -5  | Nilai tidak valid | `Nilai tidak valid.` | Sesuai |
+| 0   | Belum lulus    | `Status: Belum lulus` | Sesuai |
+| 59.99 | Belum lulus    | `Status: Belum lulus` | Sesuai |
+| 60  | Lulus       | `Status: Lulus`    | Sesuai |
+| 100  | Lulus       | `Status: Lulus`    | Sesuai |
+| 105  | Nilai tidak valid | `Nilai tidak valid.` | Sesuai |
 
 ### Pertanyaan analisis
 
@@ -49,7 +49,7 @@
 ### Pengujian nilai batas
 
 | Input | Expected Huruf Mutu | Actual Output | Status |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | 0 | E | `Nilai akhir : 0.00`, `Huruf mutu : E` | Sesuai |
 | 49.99 | E | `Nilai akhir : 49.99`, `Huruf mutu : E` | Sesuai |
 | 50 | D | `Nilai akhir : 50.00`, `Huruf mutu : D` | Sesuai |
@@ -90,7 +90,7 @@
 ### Pengujian jalur eksekusi
 
 | TC | Pilihan | Angka 1 | Angka 2 | Expected Result | Actual Result | Status |
-| --- | --- | --- | --- | --- | --- | --- |
+|---|---|---|---|---|---|---|
 | 1 | 1 | 10 | 5 | 15.00 | `Hasil: 15.00` | Sesuai |
 | 2 | 2 | 10 | 5 | 5.00 | `Hasil: 5.00` | Sesuai |
 | 3 | 3 | 10 | 5 | 50.00 | `Hasil: 50.00` | Sesuai |
@@ -128,7 +128,7 @@
 ### Tracing 1 - kondisi awal (`nilai = 78, kehadiran = 80`)
 
 | Langkah | Kondisi/Pernyataan | nilai | kehadiran | status | Hasil Kondisi |
-| --- | --- | --- | --- | --- | --- |
+|---|---|---|---|---|---|
 | 1 | `nilai = 78` | 78 | - | - | - |
 | 2 | `kehadiran = 80` | 78 | 80 | - | - |
 | 3 | `nilai >= 75` | 78 | 80 | - | true |
@@ -140,7 +140,7 @@
 ### Tracing 2 - kehadiran diubah 70 (`nilai = 78, kehadiran = 70`)
 
 | Langkah | Kondisi/Pernyataan | nilai | kehadiran | status | Hasil Kondisi |
-| --- | --- | --- | --- | --- | --- |
+|---|---|---|---|---|---|
 | 1 | `nilai = 78` | 78 | - | - | - |
 | 2 | `kehadiran = 70` | 78 | 70 | - | - |
 | 3 | `nilai >= 75` | 78 | 70 | - | true |
@@ -152,7 +152,7 @@
 ### Tracing 3 - nilai diubah 60 (`nilai = 60, kehadiran = 80`)
 
 | Langkah | Kondisi/Pernyataan | nilai | kehadiran | status | Hasil Kondisi |
-| --- | --- | --- | --- | --- | --- |
+|---|---|---|---|---|---|
 | 1 | `nilai = 60` | 60 | - | - | - |
 | 2 | `kehadiran = 80` | 60 | 80 | - | - |
 | 3 | `nilai >= 75` | 60 | 80 | - | false |
@@ -172,7 +172,7 @@
 ## V.2 Eksperimen (`eksperimen.c`, basis `nilai = 75`, `if (nilai >= 60)`)
 
 | No. | Perubahan | Prediksi | Hasil Aktual | Error/Warning | Penjelasan |
-| --- | --- | --- | --- | --- | --- |
+|---|---|---|---|---|---|
 | 1 | `>= 60` -> `> 60` | Tetap `Lulus.` (75 > 60 true) | `Lulus.` | bersih | 75 di atas kedua batas; beda baru terlihat di nilai = 60 |
 | 2 | `nilai` -> 60 | `Lulus.` (60 >= 60 true) | `Lulus.` | bersih | Bukti batas inklusif |
 | 3 | `>=` -> `<=` | `Belum lulus.` (75 <= 60 false) | `Belum lulus.` | bersih | Arti kondisi terbalik total |
@@ -199,7 +199,7 @@ warning: 'usia' is used uninitialized [-Wuninitialized] (baris 8)
 ### Tabel debugging
 
 | No. | Bagian yang Salah | Jenis Kesalahan | Penyebab | Perbaikan |
-| --- | --- | --- | --- | --- |
+|---|---|---|---|---|
 | 1 | Baris 8: `scanf("%d", usia);` | Runtime | `scanf` butuh alamat (`int*`). Tanpa `&`, input ditulis ke alamat sampah; `usia` tidak terisi / crash | `scanf("%d", &usia);` |
 | 2 | Baris 14: `if (usia < 0 && usia > 120)` | Logic | `&&` mustahil: tidak ada angka yang sekaligus `< 0 DAN > 120`, validasi mati | `if ((usia < 0) \|\| (usia > 120))` |
 | 3 | `case 1` tanpa `break` (baris 36-37) | Logic | Jalan terus ke `case` berikutnya: `harga = 50000` langsung ditimpa `100000`; Reguler bayar harga Premium | Tambah `break;` setelah `harga = 50000;` |
@@ -210,7 +210,7 @@ warning: 'usia' is used uninitialized [-Wuninitialized] (baris 8)
 ### Pengujian setelah perbaikan (program `debugging.c`, hasil run nyata)
 
 | TC | Usia | Jenis Tiket | Expected Result | Actual Result | Status |
-| --- | --- | --- | --- | --- | --- |
+|---|---|---|---|---|---|
 | 1 | 25 | 1 | Dewasa; harga reguler | `Kategori: Dewasa`, `Harga tiket: 50000.00` | Sesuai |
 | 2 | 65 | 2 | Lansia; harga premium | `Kategori: Lansia`, `Harga tiket: 100000.00` | Sesuai |
 | 3 | 15 | 1 | Remaja; harga reguler | `Kategori: Remaja`, `Harga tiket: 50000.00` | Sesuai |
@@ -228,7 +228,7 @@ Berhenti lebih awal: `return 1;` tepat setelah `Usia tidak valid`, dan flag `tik
 ### Level 1 - Positif/Negatif/Nol (`level_01.c`)
 
 | TC | Input | Expected Kategori | Actual Output | Status |
-| --- | --- | --- | --- | --- |
+|---|---|---|---|---|
 | 1 | -8 | Bilangan negatif | `Kategori: Bilangan negatif` | Sesuai |
 | 2 | 0 | Nol | `Kategori: Nol` | Sesuai |
 | 3 | 9 | Bilangan positif | `Kategori: Bilangan positif` | Sesuai |
@@ -236,7 +236,7 @@ Berhenti lebih awal: `return 1;` tepat setelah `Usia tidak valid`, dan flag `tik
 ### Level 2 - Genap/Ganjil (`level_02.c`, `bilangan % 2 == 0`)
 
 | TC | Input | Expected Kategori | Actual Output | Status |
-| --- | --- | --- | --- | --- |
+|---|---|---|---|---|
 | 1 | 17 | Ganjil | `17 merupakan bilangan ganjil.` | Sesuai |
 | 2 | 18 | Genap | `18 merupakan bilangan genap.` | Sesuai |
 | 3 | 0 | Genap | `0 merupakan bilangan genap.` | Sesuai |
@@ -245,7 +245,7 @@ Berhenti lebih awal: `return 1;` tepat setelah `Usia tidak valid`, dan flag `tik
 ### Level 3 - Validasi + Huruf Mutu (`level_03.c`)
 
 | Input | Expected Output | Actual Output | Status |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | -1 | Tidak valid | `Nilai tidak valid.` | Sesuai |
 | 0 | E | `Huruf mutu: E` | Sesuai |
 | 49.99 | E | `Huruf mutu: E` | Sesuai |
@@ -260,7 +260,7 @@ Berhenti lebih awal: `return 1;` tepat setelah `Usia tidak valid`, dan flag `tik
 Aturan: habis dibagi 400 -> kabisat; habis dibagi 100 (tapi bukan 400) -> bukan; habis dibagi 4 (tapi bukan 100) -> kabisat; selain itu bukan. Urutan `if` persis urutan itu.
 
 | Tahun | Expected Result | Actual Result | Status |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | 2024 | Kabisat | `2024 merupakan tahun kabisat.` | Sesuai |
 | 2023 | Bukan kabisat | `2023 bukan tahun kabisat.` | Sesuai |
 | 2000 | Kabisat | `2000 merupakan tahun kabisat.` | Sesuai |
@@ -271,7 +271,7 @@ Aturan: habis dibagi 400 -> kabisat; habis dibagi 100 (tapi bukan 400) -> bukan;
 Aturan: `< 40` Lambat; `40-80` Sedang (`<= 80`); `81-120` Cepat (`<= 120`); `> 120` Sangat Cepat. Jebakan batas: 80 harus Sedang, jadi kondisi kedua `<= 80` bukan `< 80`.
 
 | TC | Kecepatan | Expected Kategori | Actual Output | Status |
-| --- | --- | --- | --- | --- |
+|---|---|---|---|---|
 | 1 | 0 | Lambat | `Kategori : Lambat` | Sesuai |
 | 2 | 30 | Lambat | `Kategori : Lambat` | Sesuai |
 | 3 | 40 | Sedang | `Kategori : Sedang` | Sesuai |
@@ -285,7 +285,7 @@ Aturan: `< 40` Lambat; `40-80` Sedang (`<= 80`); `81-120` Cepat (`<= 120`); `> 1
 ## VIII. Pengujian Struktur Kondisional (program huruf mutu, 12 kasus)
 
 | No. | Input | Expected Output | Actual Output | Status |
-| --- | --- | --- | --- | --- |
+|---|---|---|---|---|
 | 1 | -1 | Tidak valid | `Nilai tidak valid.` | Sesuai |
 | 2 | 0 | E | `Huruf mutu : E` | Sesuai |
 | 3 | 49.99 | E | `Huruf mutu : E` | Sesuai |
@@ -308,7 +308,7 @@ Aturan: `< 40` Lambat; `40-80` Sedang (`<= 80`); `81-120` Cepat (`<= 120`); `> 1
 ### 1. Data Input
 
 | Data Input | Nama Variabel | Tipe Data | Keterangan |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | Jenis kendaraan | `pilihan` | `int` | Kode 1 Motor, 2 Mobil, 3 Bus |
 | Durasi parkir | `durasi` | `int` | Jam, minimal 1 |
 | Status member | `status` | `int` | 0 bukan member, 1 member |
@@ -316,7 +316,7 @@ Aturan: `< 40` Lambat; `40-80` Sedang (`<= 80`); `81-120` Cepat (`<= 120`); `> 1
 ### 2. Ketentuan Tarif (tabel keputusan)
 
 | Jenis Kendaraan | Jam Pertama | Jam Berikutnya | Tarif Maksimal | Validasi/Ketentuan |
-| --- | --- | --- | --- | --- |
+|---|---|---|---|---|
 | Sepeda motor | Rp3.000 | Rp1.500 | Rp15.000 | Kode 1; durasi >= 1; cap maksimal; diskon 10% jika member + durasi >= 2 |
 | Mobil | Rp5.000 | Rp3.000 | Rp30.000 | Kode 2; aturan sama |
 | Bus | Rp10.000 | Rp5.000 | Rp60.000 | Kode 3; aturan sama |
@@ -343,15 +343,14 @@ Kode kendaraan di luar 1-3 -> `Jenis kendaraan tidak valid.` Status selain 0/1 -
 ### 7. Analisis IPO
 
 | Komponen | Uraian |
-| --- | --- |
+|---|---|
 | Input | `pilihan` (1-3), `durasi` (int >= 1), `status` (0/1) via `scanf` |
 | Process | switch tarif -> validasi -> tarif awal (if-else durasi) -> cap maksimal (if) -> diskon member (if gabungan) -> total |
 | Output | Rincian: jenis kendaraan, durasi, tarif awal, diskon, total bayar (`Rp%.2f`) |
 
 ### Tabel keputusan (kondisi -> tindakan)
-
 | Kondisi/Variabel | Kemungkinan Nilai | Keputusan/Tindakan |
-| --- | --- | --- |
+|---|---|---|
 | Jenis kendaraan | 1 / 2 / 3 / selain itu | Motor (3000/1500/15000) / Mobil (5000/3000/30000) / Bus (10000/5000/60000) / `Jenis kendaraan tidak valid.` + `return 1` |
 | Durasi valid | < 1 / >= 1 | `Durasi tidak valid.` + `return 1` / lanjut hitung |
 | Durasi = 1 | ya / tidak | `tarif_awal` = tarif jam pertama / lanjut uji Durasi > 1 |
@@ -362,7 +361,7 @@ Kode kendaraan di luar 1-3 -> `Jenis kendaraan tidak valid.` Status selain 0/1 -
 ### Trace table (data uji: Mobil, 5 jam, member - expected total Rp15.300)
 
 | Langkah | Kondisi/Pernyataan | Variabel yang Berubah | Nilai Setelah Langkah |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | 1 | input pilihan=2, durasi=5, status=1 | pilihan, durasi, status | 2, 5, 1 |
 | 2 | switch case 2 | jam pertama, per jam, maksimal | 5000, 3000, 30000 |
 | 3 | durasi < 1? | - | false, lanjut |
@@ -377,7 +376,7 @@ Kode kendaraan di luar 1-3 -> `Jenis kendaraan tidak valid.` Status selain 0/1 -
 ### Tabel pengujian (10 kasus, Actual dari run nyata, kompilasi bersih tanpa warning)
 
 | No. | Kendaraan | Durasi | Member | Expected Result | Actual Result | Status |
-| --- | --- | --- | --- | --- | --- | --- |
+|---|---|---|---|---|---|---|
 | 1 | Motor | 1 | Tidak | Rp3.000 | `Tarif awal : Rp3000.00`, `Total bayar : Rp3000.00` | Sesuai |
 | 2 | Motor | 2 | Tidak | Rp4.500 | `Tarif awal : Rp4500.00`, `Total bayar : Rp4500.00` | Sesuai |
 | 3 | Motor | 2 | Ya | Rp4.050 | `Diskon : Rp450.00`, `Total : Rp4050.00` | Sesuai |
@@ -396,7 +395,7 @@ Kompilasi: `gcc -Wall -Wextra` bersih, tanpa error/warning.
 Aturan: `switch` kode 1 -> 5%, 2 -> 10%, 3 -> 15%, default -> 0%. `harga_akhir = harga_awal - harga_awal x persen/100.0`. Uang selalu `%.2f`. Kompilasi bersih.
 
 | TC | Kode Member | Harga Awal | Expected Diskon | Expected Harga Akhir | Actual Result | Status |
-| --- | --- | --- | --- | --- | --- | --- |
+|---|---|---|---|---|---|---|
 | 1 | 1 | 100000 | 5% | Rp95000.00 | `Diskon : 5%`, `Harga akhir : Rp95000.00` | Sesuai |
 | 2 | 3 | 200000 | 15% | Rp170000.00 | `Diskon : 15%`, `Harga akhir : Rp170000.00` | Sesuai |
 | 3 | 9 | 50000 | 0% | Rp50000.00 | `Diskon : 0%`, `Harga akhir : Rp50000.00` (via default) | Sesuai |

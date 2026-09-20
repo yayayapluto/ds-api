@@ -26,6 +26,7 @@ daspro_api/          kode layanan
   pipeline.py        alur pengerjaan satu modul
   jobs.py            pekerjaan latar belakang dan kemajuannya
   request.py         pembaca badan permintaan JSON dan multipart
+  envfile.py         pembaca berkas .env
   server.py          endpoint HTTP (pustaka bawaan Python)
   __main__.py        perintah baris
 skill/               salinan skill solve-daspro (skrip + acuan gaya)
@@ -45,13 +46,24 @@ pasang `lxml` (skrip skill memakainya).
 
 ## Menjalankan
 
-```bash
-export DASPRO_AI_API_KEY="kunci-rahasia"
-export DASPRO_AI_BASE_URL="https://api.openai.com/v1"
-export DASPRO_AI_MODEL="gpt-4o-mini"
+Cara paling gampang: salin contoh berkas pengaturan, lalu isi kuncinya.
 
-python3 -m daspro_api --cek          # pastikan semuanya siap
-python3 -m daspro_api                # mulai melayani di 127.0.0.1:8787
+```bash
+cp .env.example .env     # lalu buka .env dan isi DASPRO_AI_API_KEY
+python3 -m daspro_api --cek    # pastikan semuanya siap
+python3 -m daspro_api          # mulai melayani di 127.0.0.1:8787
+```
+
+Isi `.env` dibaca otomatis. Berkas itu tidak ikut masuk git, jadi kunci API
+tidak akan terunggah. Kalau berkasnya ditaruh di tempat lain, tunjuk
+lokasinya dengan `--env /jalur/ke/berkas.env`. Untuk mengabaikan `.env`
+sama sekali, pakai `--tanpa-env`.
+
+Pengaturan juga bisa dikirim lewat variabel lingkungan seperti biasa. Nilai
+dari terminal menang atas isi `.env`, jadi ini tetap jalan:
+
+```bash
+DASPRO_PORT=9000 python3 -m daspro_api
 ```
 
 Penyedia lain yang memakai antarmuka sama bisa dipakai dengan mengganti
@@ -60,8 +72,9 @@ coba tanpa internet, setel `DASPRO_AI_PROVIDER=mock`.
 
 ## Pengaturan
 
-Semua dibaca dari variabel lingkungan. Nama tanpa awalan `DASPRO_` juga
-diterima untuk kunci yang sudah biasa dipakai (`OPENAI_API_KEY`).
+Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
+`DASPRO_` juga diterima untuk kunci yang sudah biasa dipakai
+(`OPENAI_API_KEY`).
 
 | Variabel | Bawaan | Keterangan |
 | --- | --- | --- |

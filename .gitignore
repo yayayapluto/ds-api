@@ -1,5 +1,8 @@
 # Berkas kerja layanan, jangan ikut masuk repo.
 data/
+.env
+.env.*
+!.env.example
 *.pyc
 __pycache__/
 .pytest_cache/

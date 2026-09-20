@@ -94,7 +94,13 @@ class Pengaturan:
         return max(1, self.max_upload_mb) * 1024 * 1024
 
     @classmethod
-    def dari_env(cls, env=None) -> "Pengaturan":
+    def dari_env(cls, env=None, pakai_env_file: bool = True) -> "Pengaturan":
+        if env is None and pakai_env_file:
+            # Isi berkas .env dipasang dulu supaya pengaturan di bawah
+            # membacanya seperti variabel lingkungan biasa.
+            from .envfile import muat_env
+
+            muat_env()
         e = os.environ if env is None else env
 
         def ambil(nama: str, bawaan: str) -> str:

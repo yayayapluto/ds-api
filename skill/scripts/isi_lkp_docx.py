@@ -29,7 +29,12 @@ import sys
 import zipfile
 from pathlib import Path
 
-from lxml import etree
+try:
+    import lxml.etree as etree  # type: ignore[import-not-found]
+except ImportError:  # pragma: no cover
+    raise SystemExit(
+        "Paket lxml belum terpasang. Jalankan: pip install lxml"
+    )
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = {"w": W}

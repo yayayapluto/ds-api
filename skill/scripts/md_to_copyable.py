@@ -139,9 +139,10 @@ def convert(md):
                      '<button class="cp">copy</button></div>')
             i += 1
             continue
-        if re.match(r'^[\-\*]\s+', ln.strip()):
+        m3 = re.match(r'^[\-\*]\s+(.*)', ln.strip())
+        if m3:
             h.append(f'<div class="li"><span class="txt">'
-                     f'{inline(re.sub(r"^[\-\*]\s+", "", ln.strip()))}</span>'
+                     f'{inline(m3.group(1))}</span>'
                      '<button class="cp">copy</button></div>')
             i += 1
             continue
