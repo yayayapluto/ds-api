@@ -14,6 +14,8 @@ Endpoint yang tersedia:
     POST /v1/cek-bahasa              periksa gaya bahasa laporan
     POST /v1/docx/peta               lihat tempat kosong di template docx
     POST /v1/docx/isi                isi template docx dari mapping
+    GET  /docs                       halaman dokumentasi API (Swagger UI)
+    GET  /openapi.json               berkas spesifikasi OpenAPI
 """
 import errno
 import json
@@ -27,11 +29,13 @@ from pathlib import Path
 
 from daspro_api import __version__
 from daspro_api.ai import KlienAi
+from daspro_api.apidocs import spesifikasi
 from daspro_api.compiler import KompilatorC
 from daspro_api.config import Pengaturan
 from daspro_api.errors import (
     AiBelumDiatur,
     DasproError,
+    GccTidakAda,
     InputTidakValid,
     TidakDitemukan,
 )
@@ -51,6 +55,7 @@ from daspro_api.skillbridge import Skill
 JENIS_BERKAS = {
     ".c": "text/plain; charset=utf-8",
     ".md": "text/plain; charset=utf-8",
+    ".log": "text/plain; charset=utf-8",
     ".html": "text/html; charset=utf-8",
     ".json": "application/json; charset=utf-8",
     ".zip": "application/zip",
@@ -226,6 +231,10 @@ class Penanganan(BaseHTTPRequestHandler):
         kandidat = FOLDER_WEB / nama
         if kandidat.is_dir():
             kandidat = kandidat / "index.html"
+        # Jalur tanpa akhiran (mis. /docs) dipetakan ke halaman .html
+        # dengan nama yang sama.
+        if not kandidat.is_file() and not kandidat.suffix:
+            kandidat = kandidat.with_suffix(".html")
         try:
             nyata = kandidat.resolve()
             dasar = FOLDER_WEB.resolve()
@@ -290,6 +299,13 @@ class Penanganan(BaseHTTPRequestHandler):
         bagian = self._bagian_jalur()
         if bagian == ["health"]:
             p = self.layanan.p
+            # gcc yang tidak ada dilaporkan sebagai data kosong, bukan
+            # kegagalan: endpoint ini justru dipakai untuk memeriksa
+            # persiapan, jadi harus tetap bisa dijawab.
+            try:
+                gcc = self.layanan.gcc.periksa_gcc()
+            except GccTidakAda:
+                gcc = ""
             self._kirim(
                 200,
                 {
@@ -301,7 +317,7 @@ class Penanganan(BaseHTTPRequestHandler):
                     "folder_skill": str(self.layanan.skill.folder),
                     "ai_siap": p.ai_siap,
                     "ai": p.ai_ringkas(),
-                    "gcc": self.layanan.gcc.periksa_gcc(),
+                    "gcc": gcc,
                     "jumlah_pekerjaan": len(self.layanan.pekerjaan.daftar(1000)),
                 },
             )
@@ -324,6 +340,12 @@ class Penanganan(BaseHTTPRequestHandler):
 
         if bagian == ["v1", "jobs"]:
             self._kirim(200, {"ok": True, "pekerjaan": self.layanan.pekerjaan.daftar()})
+            return
+
+        # Spesifikasi disusun saat diminta, jadi selalu sesuai kode yang
+        # sedang jalan, bukan salinan yang bisa basi.
+        if bagian == ["openapi.json"]:
+            self._kirim(200, spesifikasi())
             return
 
         if len(bagian) >= 3 and bagian[:2] == ["v1", "jobs"]:

@@ -86,8 +86,16 @@ seluruh pekerjaan tanpa mengetik perintah:
    Langkah ini opsional kalau server sudah punya kunci sendiri.
 2. Unggah modul dan template LKP.
 3. Isi identitas, lalu tekan Mulai kerjakan.
-4. Lihat kemajuan, lalu unduh hasilnya. Catatan pekerjaan bisa diunduh
-   terpisah lewat tautan log, termasuk kalau pekerjaannya gagal.
+4. Lihat kemajuan, lalu unduh hasilnya. Catatan pekerjaan dibuka di modal
+   dan bisa diunduh terpisah, termasuk kalau pekerjaannya gagal.
+
+Pemantauan kemajuan tidak langsung menyerah kalau satu permintaan gagal;
+ia mencoba beberapa kali dulu. Kalau pemantauan benar-benar terlepas,
+pekerjaannya tetap jalan di server dan bisa disambungkan lagi lewat tombol
+"pantau" di baris riwayat pekerjaan.
+
+Dokumentasi API ada di `http://127.0.0.1:8787/docs` (Swagger UI), dengan
+berkas spesifikasinya di `/openapi.json`.
 
 Kunci API disimpan hanya di peramban (localStorage), dan dikirim ke server
 hanya saat pekerjaan berjalan. Server tidak menuliskannya ke berkas, tidak
@@ -147,6 +155,8 @@ Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
 | `POST` | `/v1/cek-bahasa` | periksa gaya bahasa laporan |
 | `POST` | `/v1/docx/peta` | lihat tempat kosong di template docx |
 | `POST` | `/v1/docx/isi` | isi template docx dari mapping |
+| `GET` | `/docs` | halaman dokumentasi API (Swagger UI) |
+| `GET` | `/openapi.json` | berkas spesifikasi OpenAPI |
 
 Isi permintaan bisa `multipart/form-data` (kalau ada berkas) atau
 `application/json`. Kolom yang dipakai endpoint `/v1/jobs`:

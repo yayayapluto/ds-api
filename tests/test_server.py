@@ -223,6 +223,12 @@ class UjiServer(unittest.TestCase):
         self.assertEqual(kode, 200)
         self.assertIn(b"int main", isi_c)
 
+        # Catatan pekerjaan dibaca sebagai teks, bukan berkas biner.
+        kode, isi_log, jenis_log = self.panggil(f"/v1/jobs/{job_id}/log")
+        self.assertEqual(kode, 200)
+        self.assertIn("text/plain", jenis_log)
+        self.assertIn(b"Pekerjaan selesai.", isi_log)
+
     def test_08_galat_jelas(self):
         kode, data = self.json_panggil("/v1/jobs/tdkada")
         self.assertEqual(kode, 404)

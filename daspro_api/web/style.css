@@ -210,6 +210,30 @@ td.kanan, th.kanan { text-align: right; }
 .riwayat-baris .id { font-family: ui-monospace, monospace; font-size: .85rem; }
 .riwayat-baris .kanan { margin-left: auto; display: flex; gap: 8px; }
 
+/* --- modal catatan pekerjaan --- */
+.modal {
+  position: fixed; inset: 0; z-index: 20;
+  background: rgba(15, 17, 22, .55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-kotak {
+  background: var(--kertas); border-radius: 10px;
+  width: 100%; max-width: 760px; max-height: 85vh;
+  display: flex; flex-direction: column; padding: 16px 18px;
+}
+.modal-kepala {
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--garis); padding-bottom: 10px;
+}
+.modal-kepala strong { flex: 1; }
+.modal-isi {
+  flex: 1; overflow: auto; margin: 12px 0;
+  background: #f7f8fa; border: 1px solid var(--garis); border-radius: 8px;
+  padding: 12px; font-family: ui-monospace, monospace; font-size: .82rem;
+  white-space: pre-wrap; word-break: break-word;
+}
+
 /* --- lain --- */
 .sembunyi { display: none; }
 .toast {

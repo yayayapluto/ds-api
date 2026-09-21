@@ -237,6 +237,10 @@ async function ujiAi() {
 
 let jobAktif = null;
 let pewaktu = null;
+// Berapa kali berturut-turut tanya kemajuan gagal. Satu kegagalan belum
+// berarti pekerjaannya berhenti.
+let gagalBerturut = 0;
+const BATAS_GAGAL_PANTAU = 3;
 
 async function mulai() {
   const k = kredensialSekarang();
@@ -284,6 +288,7 @@ async function mulai() {
   try {
     const d = await minta("/v1/jobs", { method: "POST", body: isi });
     jobAktif = d.job_id;
+    gagalBerturut = 0;
     $("batal").disabled = false;
     $("kartu-kemajuan").classList.remove("sembunyi");
     $("kartu-hasil").classList.add("sembunyi");
@@ -297,25 +302,65 @@ async function mulai() {
 
 function pantau() {
   clearInterval(pewaktu);
-  pewaktu = setInterval(async () => {
-    if (!jobAktif) return;
-    try {
-      const d = await minta("/v1/jobs/" + jobAktif);
-      tampilkanKemajuan(d);
-      if (["selesai", "gagal", "dibatalkan"].includes(d.status)) {
-        clearInterval(pewaktu);
-        $("mulai").disabled = false;
-        $("batal").disabled = true;
-        if (d.status === "selesai") tampilkanHasil(d);
-        else pesan("pesan-mulai", d.error || d.pesan, "gagal");
-        muatRiwayat();
-      }
-    } catch (e) {
-      clearInterval(pewaktu);
-      pesan("pesan-mulai", "Gagal memantau: " + e.message, "gagal");
-      $("mulai").disabled = false;
+  gagalBerturut = 0;
+  pewaktu = setInterval(tanyaKemajuan, 1500);
+}
+
+/* Satu kali gagal bukan berarti pekerjaannya berhenti: jaringan bisa
+ * tersendat, atau server sebentar dijalankan ulang. Pemantauan baru
+ * dilepas setelah beberapa kali gagal berturut-turut, dan pekerjaannya
+ * sendiri tetap jalan di server. */
+async function tanyaKemajuan() {
+  if (!jobAktif) return;
+  try {
+    const d = await minta("/v1/jobs/" + jobAktif);
+    if (gagalBerturut) {
+      gagalBerturut = 0;
+      pesan("pesan-mulai", "Pemantauan tersambung lagi.", "ok");
     }
-  }, 1500);
+    tampilkanKemajuan(d);
+    if (["selesai", "gagal", "dibatalkan"].includes(d.status)) {
+      clearInterval(pewaktu);
+      $("mulai").disabled = false;
+      $("batal").disabled = true;
+      if (d.status === "selesai") tampilkanHasil(d);
+      else pesan("pesan-mulai", d.error || d.pesan, "gagal");
+      muatRiwayat();
+    }
+  } catch (e) {
+    gagalBerturut += 1;
+    if (gagalBerturut < BATAS_GAGAL_PANTAU) {
+      pesan(
+        "pesan-mulai",
+        "Pemantauan tersendat (" + e.message + "). Mencoba lagi...",
+        "info"
+      );
+      return;
+    }
+    clearInterval(pewaktu);
+    pesan(
+      "pesan-mulai",
+      "Gagal memantau: " + e.message + ". Pekerjaan tetap jalan di server; " +
+        "tekan \"pantau\" di riwayat pekerjaan untuk menyambung lagi.",
+      "gagal"
+    );
+    $("mulai").disabled = false;
+    $("batal").disabled = true;
+    muatRiwayat();
+  }
+}
+
+/* Sambungkan panel ke pekerjaan yang sudah jalan, mis. setelah halaman
+ * dimuat ulang atau setelah pemantauan sempat tersendat. */
+function pantauJob(jobId) {
+  if (!/^[A-Za-z0-9]{6,32}$/.test(jobId || "")) return;
+  jobAktif = jobId;
+  $("kartu-kemajuan").classList.remove("sembunyi");
+  $("kartu-hasil").classList.add("sembunyi");
+  $("mulai").disabled = true;
+  $("batal").disabled = false;
+  pesan("pesan-mulai", "Memantau pekerjaan " + jobId + ".", "info");
+  pantau();
 }
 
 function tampilkanKemajuan(d) {
@@ -440,12 +485,22 @@ async function muatRiwayat() {
         a.href = jalurJob(j.job_id, "download");
         a.textContent = "unduh ZIP";
         kanan.append(a);
+      } else if (["menunggu", "jalan"].includes(j.status)) {
+        // Pekerjaan yang masih jalan bisa disambungkan lagi ke panel ini,
+        // mis. setelah halaman dimuat ulang.
+        const p = document.createElement("button");
+        p.type = "button";
+        p.className = "tombol kecil garis";
+        p.textContent = "pantau";
+        p.addEventListener("click", () => pantauJob(j.job_id));
+        kanan.append(p);
       }
-      // Catatan pekerjaan selalu bisa diunduh, termasuk kalau gagal.
-      const log = document.createElement("a");
+      // Catatan pekerjaan selalu bisa dibaca, termasuk kalau gagal.
+      const log = document.createElement("button");
+      log.type = "button";
       log.className = "tombol kecil garis";
-      log.href = "/v1/jobs/" + encodeURIComponent(j.job_id) + "/log";
       log.textContent = "log";
+      log.addEventListener("click", () => bukaLog(j.job_id));
       kanan.append(log);
 
       baris.append(id, p, waktu, kanan);
@@ -454,6 +509,30 @@ async function muatRiwayat() {
   } catch (e) {
     kotak.textContent = "Gagal memuat riwayat: " + e.message;
   }
+}
+
+/* ---------- modal catatan pekerjaan ---------- */
+
+/* Catatan dibuka dulu di modal supaya bisa dibaca tanpa mengunduh apa pun.
+ * Berkasnya baru diambil kalau tombol unduh ditekan. */
+async function bukaLog(jobId) {
+  if (!/^[A-Za-z0-9]{6,32}$/.test(jobId || "")) return;
+  const jalur = jalurLog(jobId);
+  $("modal-judul").textContent = "Catatan pekerjaan " + jobId;
+  $("modal-isi").textContent = "memuat...";
+  $("unduh-log").href = jalur;
+  $("modal-log").classList.remove("sembunyi");
+  try {
+    const r = await fetch(jalur);
+    if (!r.ok) throw new Error("server menjawab " + r.status);
+    $("modal-isi").textContent = await r.text();
+  } catch (e) {
+    $("modal-isi").textContent = "Gagal memuat catatan: " + e.message;
+  }
+}
+
+function tutupLog() {
+  $("modal-log").classList.add("sembunyi");
 }
 
 /* ---------- pasang semua ---------- */
@@ -495,9 +574,16 @@ function pasang() {
     const jalur = jalurJob(jobAktif, "download");
     if (jalur) window.location.assign(jalur);
   });
-  $("unduh-log").addEventListener("click", (e) => {
-    e.preventDefault();
-    if (jobAktif) window.location.assign(jalurLog(jobAktif));
+  $("lihat-log").addEventListener("click", () => {
+    if (jobAktif) bukaLog(jobAktif);
+  });
+  $("tutup-log").addEventListener("click", tutupLog);
+  $("modal-log").addEventListener("click", (e) => {
+    // Klik di luar kotak (di latar gelap) ikut menutup modal.
+    if (e.target === $("modal-log")) tutupLog();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") tutupLog();
   });
 }
 

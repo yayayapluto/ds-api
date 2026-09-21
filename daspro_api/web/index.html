@@ -151,7 +151,7 @@
     <div id="ringkasan"></div>
     <div class="baris-tombol">
       <button type="button" class="tombol besar" id="unduh-zip">Unduh semua (ZIP)</button>
-      <a class="tombol garis" id="unduh-log" href="#">Unduh catatan (log)</a>
+      <button type="button" class="tombol garis" id="lihat-log">Lihat catatan (log)</button>
     </div>
     <table id="tabel-berkas" class="sembunyi">
       <thead><tr><th>Berkas</th><th>Ukuran</th><th></th></tr></thead>
@@ -169,10 +169,29 @@
 </main>
 
 <footer class="wrap redup">
-  <p>Daspro API. Kunci API tidak pernah disimpan di server.</p>
+  <p>
+    Daspro API. Kunci API tidak pernah disimpan di server.
+    &middot; <a href="/docs">Dokumentasi API</a>
+    &middot; <a href="/openapi.json">Berkas OpenAPI</a>
+  </p>
 </footer>
 
 <div id="toast" class="toast"></div>
+
+<!-- ============ Modal catatan pekerjaan ============ -->
+<div id="modal-log" class="modal sembunyi">
+  <div class="modal-kotak">
+    <div class="modal-kepala">
+      <strong id="modal-judul">Catatan pekerjaan</strong>
+      <button type="button" class="tombol kecil garis" id="tutup-log">Tutup</button>
+    </div>
+    <pre id="modal-isi" class="modal-isi">memuat...</pre>
+    <div class="baris-tombol">
+      <a class="tombol kecil" id="unduh-log" href="#" download>Unduh berkas log</a>
+    </div>
+  </div>
+</div>
+
 <script src="/app.js"></script>
 </body>
 </html>
