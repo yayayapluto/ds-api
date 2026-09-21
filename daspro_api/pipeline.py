@@ -6,6 +6,7 @@ pemanggil bisa memantau lewat endpoint status pekerjaan.
 import json
 import shutil
 import threading
+import time
 import zipfile
 from pathlib import Path
 from typing import Optional
@@ -13,7 +14,7 @@ from typing import Optional
 from daspro_api.ai import KlienAi
 from daspro_api.compiler import KompilatorC
 from daspro_api.config import Pengaturan
-from daspro_api.errors import AiGagal, InputTidakValid
+from daspro_api.errors import AiGagal, DasproError, InputTidakValid
 from daspro_api.extract import cari_soal, teks_berkas
 from daspro_api.prompts import prompt_analisis, prompt_kode, prompt_laporan, sistem_dasar
 from daspro_api.report import susun, tulis
@@ -74,6 +75,16 @@ class Pipeline:
         return self.buat_klien(p)
 
     # --- alat bantu ------------------------------------------------------
+    def _catat(self, job, teks: str, tahap: str = "") -> None:
+        """Tulis ke catatan pekerjaan, kalau pekerjaannya punya catatan.
+
+        Dipakai supaya pipeline tetap bisa dipanggil dengan pengganti
+        pekerjaan yang sederhana (mis. di pengujian).
+        """
+        catatan = getattr(job, "catatan", None)
+        if catatan is not None:
+            catatan.tulis(teks, tahap)
+
     def _cek_batal(self, job) -> None:
         if job is not None and job.batal.is_set():
             raise InputTidakValid("pekerjaan dibatalkan")
@@ -81,7 +92,22 @@ class Pipeline:
     def _minta_json(self, job, prompt: str, tahap: str, klien=None) -> dict:
         self._cek_batal(job)
         klien = klien or self.klien
-        data = klien.lengkapi_json(prompt, sistem=sistem_dasar(self.skill))
+        mulai = time.time()
+        try:
+            data = klien.lengkapi_json(prompt, sistem=sistem_dasar(self.skill))
+        except DasproError as e:
+            self._catat(
+                job,
+                f"panggilan AI gagal setelah {time.time() - mulai:.1f} detik: "
+                f"{e.pesan}",
+                "ai-gagal",
+            )
+            raise
+        self._catat(
+            job,
+            f"panggilan AI ({tahap}) selesai dalam {time.time() - mulai:.1f} detik",
+            "ai",
+        )
         if not isinstance(data, dict):
             raise AiGagal("jawaban AI bukan objek JSON")
         return bersihkan_dalam(data)
@@ -364,6 +390,18 @@ class Pipeline:
         # AI, gcc, dan folder skill diperiksa di awal. Kalau ada yang belum
         # siap, pekerjaan berhenti di sini dengan pesan jelas, bukan gagal
         # di tengah setelah separuh berkas dibuat.
+        self._catat(
+            job,
+            f"berkas masuk: modul {Path(berkas_modul).name}, "
+            f"lkp {Path(berkas_lkp).name if berkas_lkp else '-'}, "
+            f"opsi {opsi}",
+            "berkas",
+        )
+        self._catat(
+            job,
+            f"AI: {klien.p.ai_model} lewat {klien.p.ai_base_url}",
+            "konfigurasi",
+        )
         job.maju("periksa", "Memeriksa kesiapan AI dan gcc.", 2)
         klien.periksa()
         self.skill.periksa()
@@ -413,6 +451,11 @@ class Pipeline:
                 docx_hasil = docx_akhir
             except Exception as e:  # template gagal diisi tidak boleh membatalkan semua
                 laporan_docx = {"gagal": f"{type(e).__name__}: {e}"}
+                self._catat(
+                    job,
+                    f"pengisian template docx gagal: {type(e).__name__}: {e}",
+                    "docx-gagal",
+                )
             finally:
                 shutil.rmtree(kerja, ignore_errors=True)
 
@@ -466,6 +509,12 @@ class Pipeline:
             for f in sorted(folder.rglob("*"))
             if f.is_file() and f.name != nama_zip
         ]
+        self._catat(
+            job,
+            f"selesai: {len(ringkasan['berkas_di_zip'])} berkas, "
+            f"zip {zip_path.name} ({zip_path.stat().st_size} bita)",
+            "ringkasan",
+        )
         return ringkasan
 
 

@@ -25,6 +25,7 @@ daspro_api/          kode layanan
   sanitize.py        pengganti karakter di luar keyboard
   pipeline.py        alur pengerjaan satu modul
   jobs.py            pekerjaan latar belakang dan kemajuannya
+  logbook.py         catatan layanan dan catatan tiap pekerjaan
   request.py         pembaca badan permintaan JSON dan multipart
   envfile.py         pembaca berkas .env
   web/               halaman web panel (html, css, js)
@@ -82,9 +83,11 @@ Buka `http://127.0.0.1:8787/` di peramban. Halaman ini bisa dipakai untuk
 seluruh pekerjaan tanpa mengetik perintah:
 
 1. Isi penyedia, kunci API, dan nama model. Ada tombol uji koneksi.
+   Langkah ini opsional kalau server sudah punya kunci sendiri.
 2. Unggah modul dan template LKP.
 3. Isi identitas, lalu tekan Mulai kerjakan.
-4. Lihat kemajuan, lalu unduh hasilnya.
+4. Lihat kemajuan, lalu unduh hasilnya. Catatan pekerjaan bisa diunduh
+   terpisah lewat tautan log, termasuk kalau pekerjaannya gagal.
 
 Kunci API disimpan hanya di peramban (localStorage), dan dikirim ke server
 hanya saat pekerjaan berjalan. Server tidak menuliskannya ke berkas, tidak
@@ -105,13 +108,15 @@ Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
 | --- | --- | --- |
 | `DASPRO_HOST` | `127.0.0.1` | alamat yang didengarkan |
 | `DASPRO_PORT` | `8787` | nomor port |
+| `DASPRO_PORT_FALLBACK` | `10` | berapa port berurutan dicoba kalau port di atas dipakai |
 | `DASPRO_DATA_DIR` | `./data` | tempat berkas kerja |
 | `DASPRO_SKILL_DIR` | `./skill` | folder skill (skrip dan acuan gaya) |
 | `DASPRO_AI_BASE_URL` | `https://api.openai.com/v1` | alamat layanan AI |
 | `DASPRO_AI_API_KEY` | kosong | kunci layanan AI (wajib diisi) |
 | `DASPRO_AI_MODEL` | `gpt-4o-mini` | nama model (wajib) |
-| `DASPRO_AI_TIMEOUT` | `180` | batas waktu satu panggilan AI (detik) |
-| `DASPRO_AI_MAX_TOKENS` | `8192` | batas panjang jawaban AI |
+| `DASPRO_AI_TIMEOUT` | `300` | batas waktu satu panggilan AI (detik) |
+| `DASPRO_AI_MAX_TOKENS` | `32768` | batas panjang jawaban AI (model penalaran butuh jatah lega) |
+| `DASPRO_AI_TEMPERATURE` | `0.2` | tingkat keacakan jawaban AI |
 | `DASPRO_GCC` | `gcc` | program kompilator |
 | `DASPRO_RUN_TIMEOUT` | `5` | batas waktu menjalankan program (detik) |
 | `DASPRO_MEMORY_MB` | `256` | batas memori program C |
@@ -120,6 +125,7 @@ Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
 | `DASPRO_JOB_WORKERS` | `2` | berapa pekerjaan jalan bersamaan |
 | `DASPRO_JOB_TTL_JAM` | `24` | umur hasil sebelum dibersihkan |
 | `DASPRO_AUTH_TOKEN` | kosong | kalau diisi, wajib dikirim di header `Authorization` |
+| `DASPRO_PUBLIC_BASE_URL` | kosong | alamat publik layanan, dipakai kalau ditautkan dari luar |
 
 ## Endpoint
 
@@ -134,6 +140,7 @@ Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
 | `GET` | `/v1/jobs/{id}/result` | ringkasan hasil |
 | `GET` | `/v1/jobs/{id}/download` | unduh berkas ZIP |
 | `GET` | `/v1/jobs/{id}/files/{nama}` | unduh satu berkas hasil |
+| `GET` | `/v1/jobs/{id}/log` | unduh catatan pekerjaan (teks) |
 | `POST` | `/v1/jobs/{id}/cancel` | batalkan pekerjaan |
 | `POST` | `/v1/ai/uji` | uji koneksi kredensial AI yang dikirim |
 | `POST` | `/v1/verify` | kompilasi dan jalankan berkas `.c` |
@@ -199,7 +206,9 @@ python3 tests/run_tests.py
 ```
 
 Pengujian memakai AI tiruan, jadi tidak butuh kunci dan tidak mengakses
-internet. Isinya termasuk pengujian alur lengkap sampai terbentuknya ZIP dan
+internet. Berkas contoh di `tests/fixtures` dibuat ulang otomatis oleh
+`tests/buat_fixture.py`, jadi cukup dijalankan sekali dengan perintah di
+atas. Isinya termasuk pengujian alur lengkap sampai terbentuknya ZIP dan
 pengujian semua endpoint HTTP.
 
 ## Catatan
@@ -213,3 +222,10 @@ pengujian semua endpoint HTTP.
   berjalan. Tidak ada jalur yang menuliskannya ke disk.
 - Halaman web hanya melayani berkas di dalam `daspro_api/web`. Permintaan
   yang mencoba keluar dari folder itu ditolak.
+- Ada dua catatan: catatan harian layanan di `data/logs/daspro-<tanggal>.log`,
+  dan catatan tiap pekerjaan di `data/jobs/<id>/job.log`. Nilai rahasia yang
+  didaftarkan tidak pernah ikut tertulis, dan berkas yang terlalu besar
+  dipotong dari depan.
+- Kalau port yang diminta sudah dipakai, layanan mencoba port berikutnya
+  sampai `DASPRO_PORT_FALLBACK` kali. Port yang benar-benar dipakai tertulis
+  di baris "jalan di" saat layanan dinyalakan.

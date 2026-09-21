@@ -16,7 +16,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from daspro_api.ai import ambil_json  # noqa: E402
+from daspro_api.ai import ambil_json, baca_json_http  # noqa: E402
 from daspro_api.compiler import KompilatorC  # noqa: E402
 from daspro_api.config import Pengaturan  # noqa: E402
 from daspro_api.pipeline import Pipeline, rapikan_identitas  # noqa: E402
@@ -245,6 +245,22 @@ class UjiAlat(unittest.TestCase):
     def test_ambil_json_gagal(self):
         with self.assertRaises(Exception):
             ambil_json("tidak ada json di sini")
+
+    def test_baca_json_http_mengabaiki_trailing_sse(self):
+        teks = chr(10) + "         " + chr(10) + '{"id":"x","choices":[]}data: [DONE]' + chr(10) + chr(10)
+        self.assertEqual(baca_json_http(teks), {"id": "x", "choices": []})
+
+    def test_baca_json_http_leading_whitespace(self):
+        teks = '   {"a": 1}  '
+        self.assertEqual(baca_json_http(teks), {"a": 1})
+
+    def test_baca_json_http_awal_data_sse(self):
+        teks = 'data: {"a": 1}' + chr(10) + 'data: [DONE]'
+        self.assertEqual(baca_json_http(teks), {"a": 1})
+
+    def test_baca_json_http_kosong(self):
+        with self.assertRaises(Exception):
+            baca_json_http('')
 
     def test_bersihkan_karakter_aneh(self):
         aneh = "panah \u2192 nilai \u2265 85 \u2014 selesai\u2026 \u201ckutip\u201d"

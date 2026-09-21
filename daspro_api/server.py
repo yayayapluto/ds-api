@@ -15,6 +15,7 @@ Endpoint yang tersedia:
     POST /v1/docx/peta               lihat tempat kosong di template docx
     POST /v1/docx/isi                isi template docx dari mapping
 """
+import errno
 import json
 import mimetypes
 import re
@@ -35,6 +36,7 @@ from daspro_api.errors import (
     TidakDitemukan,
 )
 from daspro_api.jobs import GudangPekerjaan
+from daspro_api.logbook import catatan_layanan
 from daspro_api.pipeline import Pipeline
 from daspro_api.request import (
     ambil_berkas,
@@ -82,6 +84,15 @@ class LayananDaspro:
         self.skill = Skill(pengaturan.skill_dir)
         self.gcc = KompilatorC(pengaturan)
         self.klien = KlienAi(pengaturan)
+        # Catatan harian layanan. Kunci API didaftarkan sebagai nilai
+        # rahasia supaya tidak pernah ikut tertulis ke berkas.
+        self.catatan = catatan_layanan(pengaturan.data_dir)
+        self.catatan.tambah_rahasia(pengaturan.ai_api_key)
+        self.catatan.tulis(
+            f"layanan mulai: {pengaturan.host}:{pengaturan.port}, "
+            f"model {pengaturan.ai_model}",
+            "mulai",
+        )
         # Layanan ini tidak boleh jalan tanpa AI: kode C wajib datang dari
         # model sungguhan, bukan jawaban tiruan.
         if wajib_ai:
@@ -100,8 +111,16 @@ class Penanganan(BaseHTTPRequestHandler):
 
     # --- alat bantu ------------------------------------------------------
     def log_message(self, format, *args):
-        """Catat permintaan ke stdout dengan bentuk yang mudah dibaca."""
-        print(f"[{time.strftime('%H:%M:%S')}] {self.address_string()} {format % args}")
+        """Catat permintaan ke stdout dan ke berkas catatan harian."""
+        baris = f"{self.address_string()} {format % args}"
+        print(f"[{time.strftime('%H:%M:%S')}] {baris}")
+        self.layanan.catatan.tulis(baris, "permintaan")
+
+    def log_error(self, format, *args):
+        """Catat permintaan yang gagal ke berkas catatan harian."""
+        baris = f"{self.address_string()} {format % args}"
+        print(f"[{time.strftime('%H:%M:%S')}] {baris}")
+        self.layanan.catatan.tulis(baris, "permintaan-gagal")
 
     def _kirim(self, kode: int, data, jenis: str = "application/json; charset=utf-8"):
         if isinstance(data, (dict, list)):
@@ -118,10 +137,49 @@ class Penanganan(BaseHTTPRequestHandler):
         if self.command != "HEAD":
             self.wfile.write(badan)
 
+    def _kirim_log(self, job):
+        """Kirim catatan pekerjaan sebagai berkas teks.
+
+        Pekerjaan lama (dibuat sebelum catatan berkas ada) belum punya
+        ``job.log``. Untuk itu catatan disusun ulang dari riwayat tahap,
+        supaya tautannya tidak pernah buntu.
+        """
+        berkas = job.catatan.berkas
+        if berkas.is_file():
+            self._kirim_berkas(berkas, nama=f"{job.id}.log")
+            return
+        baris = [f"# Catatan pekerjaan {job.id}"]
+        baris.append(f"status: {job.status} ({job.tahap})")
+        baris.append(f"dibuat: {job.dibuat}")
+        baris.append(f"selesai: {job.selesai_pada}")
+        if job.error:
+            baris.append(f"galat: {job.error}")
+        if job.detail_error:
+            baris.append(f"keterangan: {job.detail_error}")
+        baris.append("")
+        baris.append("# Riwayat tahap")
+        for catat in job.log or []:
+            baris.append(
+                f"[{catat.get('waktu', '')}] {catat.get('tahap', '')}: "
+                f"{catat.get('pesan', '')}"
+            )
+        isi = ("\n".join(baris) + "\n").encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(isi)))
+        self.send_header("Content-Disposition", f'attachment; filename="{job.id}.log"')
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(isi)
+
     def _kirim_error(self, e: Exception):
         if isinstance(e, DasproError):
+            self.layanan.catatan.tulis(f"{e.kode}: {e.pesan}", "galat")
             self._kirim(e.status, e.ke_dict())
             return
+        # Kesalahan di luar dugaan: jejak lengkap masuk berkas catatan,
+        # yang dikirim ke pemanggil hanya ringkasannya.
+        self.layanan.catatan.tulis(traceback.format_exc(), "galat-dalam")
         self._kirim(
             500,
             {
@@ -183,7 +241,8 @@ class Penanganan(BaseHTTPRequestHandler):
 
     def _kirim_halaman(self, jalur: str):
         berkas = self._berkas_web(jalur)
-        self._kirim_berkas(berkas)
+        # Halaman web wajib dirender di peramban, bukan diunduh.
+        self._kirim_berkas(berkas, disposition="inline")
 
     def _cari_berkas_job(self, job, nama: str) -> Path:
         """Cari berkas hasil pekerjaan, baik di folder job maupun folder kerja."""
@@ -193,7 +252,7 @@ class Penanganan(BaseHTTPRequestHandler):
                 return k
         raise TidakDitemukan(f"berkas {nama} tidak ada di pekerjaan {job.id}")
 
-    def _kirim_berkas(self, berkas: Path, nama=None):
+    def _kirim_berkas(self, berkas: Path, nama=None, disposition: str = "attachment"):
         if not berkas.is_file():
             raise TidakDitemukan(f"berkas {berkas.name} tidak ada")
         jenis = JENIS_BERKAS.get(
@@ -204,7 +263,7 @@ class Penanganan(BaseHTTPRequestHandler):
         self.send_header("Content-Type", jenis)
         self.send_header("Content-Length", str(len(data)))
         self.send_header(
-            "Content-Disposition", f'attachment; filename="{nama or berkas.name}"'
+            "Content-Disposition", f'{disposition}; filename="{nama or berkas.name}"'
         )
         self.end_headers()
         self.wfile.write(data)
@@ -288,6 +347,9 @@ class Penanganan(BaseHTTPRequestHandler):
                 if not job.berkas_zip.is_file():
                     raise TidakDitemukan("berkas ZIP belum siap")
                 self._kirim_berkas(job.berkas_zip)
+                return
+            if len(bagian) == 4 and bagian[3] == "log":
+                self._kirim_log(job)
                 return
             if len(bagian) >= 5 and bagian[3] == "files":
                 nama = "/".join(bagian[4:])
@@ -378,6 +440,17 @@ class Penanganan(BaseHTTPRequestHandler):
             },
             tugas,
         )
+        job.rahasia((kredensial or {}).get("api_key"))
+        job.catatan.tulis(
+            f"permintaan baru: modul {Path(berkas_modul).name}, "
+            f"lkp {Path(berkas_lkp).name if berkas_lkp else '-'}, "
+            f"model {(kredensial or {}).get('model') or self.layanan.p.ai_model}, "
+            f"kredensial {'pengguna' if kredensial else 'server'}",
+            "masuk",
+        )
+        self.layanan.catatan.tulis(
+            f"pekerjaan {job.id} dibuat oleh {self.address_string()}", "pekerjaan"
+        )
         self._kirim(
             202,
             {
@@ -397,11 +470,17 @@ class Penanganan(BaseHTTPRequestHandler):
         Kunci hanya dipakai di memori selama pekerjaan berjalan. Nilai ini
         tidak pernah ditulis ke berkas status, tidak masuk catatan tahap,
         dan tidak pernah dikirim balik ke pemanggil.
+
+        Kunci wajib ada. Halaman web selalu mengirim alamat dan nama model
+        (dari daftar pilihan), walau kolom kuncinya dibiarkan kosong. Kalau
+        alamat itu dipakai tanpa kunci, kunci milik server akan terkirim ke
+        alamat lain, dan layanan AI akan menolaknya. Jadi kalau kuncinya
+        kosong, seluruh kredensial dianggap tidak dikirim.
         """
         kunci = (field(data, "ai_api_key") or "").strip()
         alamat = (field(data, "ai_base_url") or "").strip()
         model = (field(data, "ai_model") or "").strip()
-        if not (kunci or alamat or model):
+        if not kunci:
             return None
         return {"api_key": kunci, "base_url": alamat, "model": model}
 
@@ -527,9 +606,32 @@ def buat_server(pengaturan: Pengaturan, wajib_ai: bool = True) -> ThreadingHTTPS
     layanan = LayananDaspro(pengaturan, wajib_ai=wajib_ai)
     handler = type("PenangananSiap", (Penanganan,), {"layanan": layanan})
     handler.batas_unggah = pengaturan.max_upload_bytes
-    httpd = ThreadingHTTPServer((pengaturan.host, pengaturan.port), handler)
+    httpd = _bind_server(
+        pengaturan.host, pengaturan.port, handler, pengaturan.port_fallback
+    )
     httpd.daemon_threads = True
     return httpd
+
+
+def _bind_server(host, port, handler, fallback) -> ThreadingHTTPServer:
+    """Bind server; bila portnya sudah dipakai, turun ke port berikutnya.
+
+    Menghindari layanan gagal total sekadar karena satu port bentrok (mis.
+    dipakai alat lain). Port yang memang terpakai terbaca di
+    ``httpd.server_address[1]``.
+    """
+    attempts = max(1, fallback)
+    for i in range(attempts):
+        try:
+            return ThreadingHTTPServer((host, port), handler)
+        except OSError as e:
+            if e.errno != errno.EADDRINUSE:
+                raise
+            if i == attempts - 1:
+                raise
+            print(f"  port {port} sudah dipakai, mencoba {port + 1} ...")
+            port += 1
+    raise RuntimeError("tidak ada port yang bisa dipakai")
 
 
 def jalankan(pengaturan: Pengaturan) -> int:

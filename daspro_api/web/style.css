@@ -53,6 +53,35 @@ body {
 }
 .bantuan { margin: 4px 0 14px; color: var(--redup); font-size: .9rem; }
 .redup { color: var(--redup); font-size: .88rem; }
+.kecil { font-size: .82rem; }
+
+/* --- kartu opsional (boleh dilewati) --- */
+.kartu-opsional {
+  background: #fafbfc;
+  border-style: dashed;
+  border-color: #cdd2db;
+}
+.kartu-opsional .nomor { background: #9aa1ad; }
+.kartu-opsional h2 { color: #4b5563; }
+.tanda-opsional {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #e7e9ee;
+  color: var(--redup);
+  font-size: .74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+/* kalau server belum punya kunci, kartu ini jadi wajib lagi */
+.kartu-opsional.butuh {
+  background: var(--kertas);
+  border-style: solid;
+  border-color: var(--merah);
+}
+.kartu-opsional.butuh .nomor { background: var(--tinta); }
+.kartu-opsional.butuh h2 { color: var(--tinta); }
+.kartu-opsional.butuh .tanda-opsional { background: #fde3e0; color: var(--merah); }
 
 /* --- borang --- */
 label { display: block; margin-bottom: 14px; font-size: .92rem; font-weight: 600; }
@@ -104,6 +133,8 @@ input:focus, select:focus { outline: 2px solid var(--biru); outline-offset: 1px;
 .tombol.garis:hover:not(:disabled) { background: #eef0f4; }
 .tombol.besar { padding: 12px 22px; font-size: 1rem; }
 .tombol.kecil { padding: 6px 12px; font-size: .85rem; }
+/* Tautan yang dipakai sebagai tombol (mis. unduh ZIP dan log). */
+a.tombol { display: inline-block; text-decoration: none; }
 .baris-tombol { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 
 /* --- pesan --- */

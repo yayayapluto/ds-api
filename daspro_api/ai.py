@@ -71,6 +71,74 @@ def ambil_json(teks: str):
     raise AiGagal("JSON dari model tidak lengkap")
 
 
+def baca_json_http(teks: str):
+    """Baca nilai JSON pertama dari badan jawaban HTTP.
+
+    Sebagian gerbang (proxy) menambahkan penanda SSE seperti `data: [DONE]`
+    di belakang badan JSON yang sebenarnya, sehingga `json.loads` menolak
+    dengan "Extra data". Karena itu kita ambil nilai JSON pertama saja dan
+    mengabaikan sisanya.
+    """
+    if teks is None or not teks.strip():
+        raise AiGagal("jawaban layanan AI kosong")
+
+    sisa = teks.lstrip()
+    if sisa.startswith("data:"):
+        sisa = sisa[5:].lstrip()
+
+    try:
+        nilai, _ = json.JSONDecoder().raw_decode(sisa)
+        return nilai
+    except json.JSONDecodeError as e:
+        raise AiGagal(
+            "jawaban layanan AI bukan JSON yang sah", detail=teks[:600]
+        ) from e
+
+
+def baca_aliran_sse(baris) -> dict:
+    """Susun satu jawaban dari potongan aliran (SSE) layanan AI.
+
+    Mode aliran mengirim jawaban sedikit-sedikit dengan awalan `data:`,
+    bukan satu badan JSON utuh. Fungsi ini menggabungkan potongan teksnya
+    dan mencatat alasan berhenti serta pemakaian token kalau ada.
+
+    Hasilnya berbentuk sama seperti jawaban mode biasa, supaya pemanggil
+    tidak perlu tahu mode mana yang dipakai.
+    """
+    potongan = []
+    alasan = ""
+    pemakaian = None
+    for baris in baris:
+        teks = baris.decode("utf-8", "replace").strip() if isinstance(baris, bytes) else str(baris).strip()
+        if not teks or not teks.startswith("data:"):
+            continue
+        isi = teks[5:].strip()
+        if isi == "[DONE]":
+            break
+        try:
+            potong = json.loads(isi)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(potong, dict):
+            continue
+        if isinstance(potong.get("usage"), dict):
+            pemakaian = potong["usage"]
+        for pilih in potong.get("choices") or []:
+            if not isinstance(pilih, dict):
+                continue
+            if pilih.get("finish_reason"):
+                alasan = str(pilih["finish_reason"])
+            delta = pilih.get("delta") or {}
+            bagian = delta.get("content")
+            if bagian:
+                potongan.append(str(bagian))
+    return {
+        "choices": [
+            {"message": {"content": "".join(potongan)}, "finish_reason": alasan}
+        ],
+        "usage": pemakaian,
+    }
+
 class KlienAi:
     """Pemanggil model bahasa sungguhan lewat antarmuka OpenAI."""
 
@@ -120,12 +188,19 @@ class KlienAi:
         }
 
     # --- panggilan sebenarnya -------------------------------------------
-    def _post(self, url: str, isi: dict, header: dict) -> dict:
+    def _kirim(self, url: str, isi: dict, header: dict):
+        """Kirim permintaan dan kembalikan badan jawaban sebagai baris-baris.
+
+        Selalu memakai mode aliran. Sebagian gerbang menahan jawaban mode
+        biasa sampai seluruh teks selesai ditulis, sehingga panggilan panjang
+        gampang melewati batas waktu. Dengan aliran, potongan pertama sudah
+        sampai jauh sebelum batas waktu habis.
+        """
         data = json.dumps(isi).encode("utf-8")
         req = urllib.request.Request(url, data=data, headers=header, method="POST")
         try:
             with urllib.request.urlopen(req, timeout=self.p.ai_timeout) as r:
-                return json.loads(r.read().decode("utf-8", "replace"))
+                return list(r)
         except urllib.error.HTTPError as e:
             badan = ""
             try:
@@ -139,6 +214,10 @@ class KlienAi:
             raise AiGagal(f"tidak bisa menghubungi layanan AI: {e.reason}") from e
         except TimeoutError as e:
             raise AiGagal("panggilan ke layanan AI melewati batas waktu") from e
+
+    def _post(self, url: str, isi: dict, header: dict) -> dict:
+        """Panggil layanan AI dalam mode aliran, lalu susun jadi satu jawaban."""
+        return baca_aliran_sse(self._kirim(url, isi, header))
 
     def lengkapi(self, prompt: str, sistem: str = "", suhu=None, token=None) -> str:
         """Minta satu jawaban teks dari model."""
@@ -154,6 +233,9 @@ class KlienAi:
             "messages": pesan,
             "temperature": self.p.ai_temperature if suhu is None else suhu,
             "max_tokens": self.p.ai_max_tokens if token is None else token,
+            "stream": True,
+            # Supaya pemakaian token tetap ikut dikirim di mode aliran.
+            "stream_options": {"include_usage": True},
         }
         header = {
             "Content-Type": "application/json",
@@ -162,11 +244,26 @@ class KlienAi:
         url = f"{self.p.ai_base_url}/chat/completions"
         hasil = self._post(url, isi, header)
         try:
-            return str(hasil["choices"][0]["message"]["content"]).strip()
+            pilih = hasil["choices"][0]
+            teks = str(pilih["message"]["content"]).strip()
         except (KeyError, IndexError, TypeError) as e:
             raise AiGagal(
                 "bentuk jawaban layanan AI tidak dikenal", detail=str(hasil)[:600]
             ) from e
+
+        if not teks:
+            # Model penalaran bisa menghabiskan seluruh jatah token untuk
+            # berpikir, sehingga teks jawabannya kosong dan jawaban terpotong.
+            alasan = str(pilih.get("finish_reason") or "")
+            if alasan == "length":
+                raise AiGagal(
+                    "jawaban AI terpotong sebelum selesai: seluruh jatah "
+                    f"token ({isi['max_tokens']}) habis dipakai untuk berpikir. "
+                    "Naikkan DASPRO_AI_MAX_TOKENS atau pakai model tanpa "
+                    "penalaran."
+                )
+            raise AiGagal("jawaban AI kosong")
+        return teks
 
     def lengkapi_json(self, prompt: str, sistem: str = "", suhu=None, token=None) -> dict:
         """Minta jawaban, lalu baca sebagai JSON.

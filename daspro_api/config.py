@@ -51,14 +51,18 @@ class Pengaturan:
 
     host: str = "127.0.0.1"
     port: int = 8787
+    # Berapa port berurutan yang dicoba kalau port di atas sudah dipakai.
+    port_fallback: int = 10
     data_dir: Path = field(default_factory=lambda: FOLDER_BAWAAN)
     skill_dir: Path = field(default_factory=folder_skill_bawaan)
 
     ai_base_url: str = "https://api.openai.com/v1"
     ai_api_key: str = ""
     ai_model: str = "gpt-4o-mini"
-    ai_timeout: int = 180
-    ai_max_tokens: int = 8192
+    ai_timeout: int = 300
+    # Model penalaran memakai sebagian jatah token untuk berpikir, jadi
+    # jatahnya perlu lega supaya jawaban tidak terpotong di tengah.
+    ai_max_tokens: int = 32768
     ai_temperature: float = 0.2
 
     gcc: str = "gcc"
@@ -148,13 +152,14 @@ class Pengaturan:
         return cls(
             host=ambil("DASPRO_HOST", "127.0.0.1"),
             port=_ke_int(ambil("DASPRO_PORT", "8787"), 8787),
+            port_fallback=_ke_int(ambil("DASPRO_PORT_FALLBACK", "10"), 10),
             data_dir=Path(ambil("DASPRO_DATA_DIR", str(FOLDER_BAWAAN))),
             skill_dir=Path(ambil("DASPRO_SKILL_DIR", str(folder_skill_bawaan()))),
             ai_base_url=base_url.rstrip("/"),
             ai_api_key=api_key,
             ai_model=model,
-            ai_timeout=_ke_int(ambil("DASPRO_AI_TIMEOUT", "180"), 180),
-            ai_max_tokens=_ke_int(ambil("DASPRO_AI_MAX_TOKENS", "8192"), 8192),
+            ai_timeout=_ke_int(ambil("DASPRO_AI_TIMEOUT", "300"), 300),
+            ai_max_tokens=_ke_int(ambil("DASPRO_AI_MAX_TOKENS", "32768"), 32768),
             ai_temperature=_ke_float(ambil("DASPRO_AI_TEMPERATURE", "0.2"), 0.2),
             gcc=ambil("DASPRO_GCC", "gcc"),
             run_timeout=_ke_int(ambil("DASPRO_RUN_TIMEOUT", "5"), 5),

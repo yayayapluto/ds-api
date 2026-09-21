@@ -8,12 +8,14 @@ import json
 import shutil
 import threading
 import time
+import traceback
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 from daspro_api.config import Pengaturan
 from daspro_api.errors import JobBentrok, TidakDitemukan
+from daspro_api.logbook import catatan_pekerjaan
 
 MENUNGGU = "menunggu"
 JALAN = "jalan"
@@ -48,10 +50,18 @@ class Pekerjaan:
         self.dibuat = sekarang()
         self.selesai_pada = ""
         self.error = ""
+        self.detail_error = ""
         self.hasil = {}
         self.log = []
         self.batal = threading.Event()
         self._kunci = threading.Lock()
+        # Catatan berkas untuk pekerjaan ini. Nilai rahasia bisa
+        # didaftarkan lewat ``rahasia()`` supaya tidak ikut tertulis.
+        self.catatan = catatan_pekerjaan(self.folder)
+
+    def rahasia(self, *nilai) -> None:
+        """Daftarkan nilai yang tidak boleh ikut masuk berkas catatan."""
+        self.catatan.tambah_rahasia(*nilai)
 
     # --- perubahan status ------------------------------------------------
     def maju(self, tahap: str, pesan: str = "", persen=None) -> None:
@@ -62,6 +72,7 @@ class Pekerjaan:
             if persen is not None:
                 self.persen = max(0, min(100, ke_int(persen, self.persen)))
             self.log.append({"waktu": sekarang(), "tahap": tahap, "pesan": pesan})
+            self.catatan.tulis(pesan or "", tahap)
             self.simpan()
 
     def selesai(self, hasil: dict) -> None:
@@ -72,15 +83,29 @@ class Pekerjaan:
             self.pesan = "Pekerjaan selesai."
             self.hasil = hasil
             self.selesai_pada = sekarang()
+            self.catatan.tulis("Pekerjaan selesai.", "selesai")
             self.simpan()
 
-    def gagal(self, pesan: str) -> None:
+    def gagal(self, pesan: str, detail: str = "") -> None:
         with self._kunci:
             self.status = GAGAL
             self.tahap = "gagal"
             self.pesan = "Pekerjaan berhenti karena ada masalah."
             self.error = pesan
+            self.detail_error = detail
             self.selesai_pada = sekarang()
+            # Catatan lengkap ikut ke berkas, supaya bisa diperiksa menyusul.
+            baris = f"GAGAL: {pesan}"
+            if detail:
+                baris += f"\n{detail}"
+            self.catatan.tulis(baris, "gagal")
+            self.log.append(
+                {
+                    "waktu": sekarang(),
+                    "tahap": "gagal",
+                    "pesan": pesan,
+                }
+            )
             self.simpan()
 
     def tandai_dibatalkan(self) -> None:
@@ -89,6 +114,7 @@ class Pekerjaan:
             self.tahap = "dibatalkan"
             self.pesan = "Pekerjaan dibatalkan."
             self.selesai_pada = sekarang()
+            self.catatan.tulis("Pekerjaan dibatalkan.", "dibatalkan")
             self.simpan()
 
     def berjalan(self) -> None:
@@ -97,6 +123,7 @@ class Pekerjaan:
             self.tahap = "mulai"
             self.persen = 1
             self.pesan = "Pekerjaan mulai dikerjakan."
+            self.catatan.tulis(self.pesan, "mulai")
             self.simpan()
 
     @property
@@ -145,6 +172,7 @@ class Pekerjaan:
             "dibuat": self.dibuat,
             "selesai_pada": self.selesai_pada,
             "error": self.error,
+            "detail_error": self.detail_error,
             "hasil": self.hasil,
             "berkas": self.daftar_berkas() if self.selesai_akhir else [],
         }
@@ -196,6 +224,7 @@ class GudangPekerjaan:
             job.dibuat = data.get("dibuat", "")
             job.selesai_pada = data.get("selesai_pada", "")
             job.error = data.get("error", "")
+            job.detail_error = data.get("detail_error", "")
             job.hasil = data.get("hasil", {})
             job.log = data.get("log", [])
             if not job.selesai_akhir:
@@ -268,8 +297,17 @@ class GudangPekerjaan:
                 else:
                     job.selesai(hasil or {})
             except Exception as e:  # satu pekerjaan gagal tidak boleh mematikan server
-                pesan = getattr(e, "pesan", None) or f"{type(e).__name__}: {e}"
-                job.gagal(str(pesan))
+                pesan = getattr(e, "pesan", None)
+                if not pesan:
+                    pesan = f"{type(e).__name__}: {e}"
+                # Jejak lengkap ikut masuk berkas catatan pekerjaan, supaya
+                # sebab kegagalan bisa diperiksa tanpa menebak-nebak.
+                detail = ""
+                keterangan = getattr(e, "detail", None)
+                if keterangan:
+                    detail = f"keterangan: {keterangan}\n"
+                detail += traceback.format_exc()
+                job.gagal(str(pesan), detail)
 
     def bersihkan_lama(self) -> int:
         """Hapus pekerjaan lama supaya disk tidak penuh."""

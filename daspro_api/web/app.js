@@ -124,6 +124,13 @@ function jalurJob(jobId, aksi) {
   return "/v1/jobs/" + encodeURIComponent(jobId) + "/" + bagian;
 }
 
+/* Jalur catatan pekerjaan. Selalu ada, termasuk untuk pekerjaan yang gagal,
+ * supaya sebab kegagalan bisa diperiksa sendiri. */
+function jalurLog(jobId) {
+  if (!jobId || !/^[A-Za-z0-9]{6,32}$/.test(jobId)) return "";
+  return "/v1/jobs/" + encodeURIComponent(jobId) + "/log";
+}
+
 async function minta(jalur, opsi) {
   const r = await fetch(jalur, opsi);
   const teks = await r.text();
@@ -144,6 +151,42 @@ async function minta(jalur, opsi) {
 
 /* ---------- keadaan layanan ---------- */
 
+/* Kunci server terisi -> kartu pengaturan AI cukup dilewati. Kalau kosong,
+ * kartu itu berubah jadi wajib: tanpa kunci, pekerjaan tidak bisa jalan. */
+let kunciServerTerisi = null;
+
+function perbaruiStatusAi(d) {
+  const kartu = $("kartu-ai");
+  const tanda = $("tanda-ai");
+  const bantuan = $("bantuan-ai");
+  const label = document.querySelector("#kartu-ai .tanda-opsional");
+  const punyaKunci = Boolean(d && d.ai && d.ai.kunci_terisi);
+  kunciServerTerisi = punyaKunci;
+
+  kartu.classList.toggle("butuh", !punyaKunci);
+  if (label) label.textContent = punyaKunci ? "opsional" : "wajib";
+
+  if (!d) {
+    tanda.className = "pil merah";
+    tanda.textContent = "server tidak terjangkau";
+    bantuan.textContent = "Keadaan kunci server belum diketahui.";
+    return;
+  }
+  if (punyaKunci) {
+    tanda.className = "pil abu";
+    tanda.textContent = "opsional - server sudah punya kunci";
+    bantuan.textContent =
+      "Kode C ditulis oleh model bahasa. Server sudah punya kunci API, jadi " +
+      "bagian ini cukup dibiarkan kosong. Isi hanya kalau mau memakai kunci sendiri.";
+  } else {
+    tanda.className = "pil merah";
+    tanda.textContent = "wajib diisi";
+    bantuan.textContent =
+      "Server belum punya kunci API, jadi kunci harus diisi di sini supaya " +
+      "modul bisa dikerjakan.";
+  }
+}
+
 async function muatKeadaan() {
   const kotak = $("keadaan");
   kotak.textContent = "";
@@ -161,8 +204,10 @@ async function muatKeadaan() {
       "server: " + (d.ai ? d.ai.model : "-") +
       (d.ai && d.ai.kunci_terisi ? " (kunci server terisi)" : " (kunci server kosong)");
     kotak.append(ket);
+    perbaruiStatusAi(d);
   } catch (e) {
     kotak.append(pil("server tidak terjangkau", "merah"));
+    perbaruiStatusAi(null);
   }
 }
 
@@ -207,6 +252,16 @@ async function mulai() {
     pesan("pesan-mulai", "Belum diisi: " + kurang.join(", ") + ".", "gagal");
     return;
   }
+  if (kunciServerTerisi === false && !k.api_key) {
+    pesan(
+      "pesan-mulai",
+      "Kunci API belum ada. Server tidak punya kunci sendiri, jadi isi dulu di bagian " +
+        "\"Pengaturan AI\" di atas.",
+      "gagal"
+    );
+    $("kartu-ai").scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
   pesan("pesan-mulai", "", "");
 
   const isi = new FormData();
@@ -215,9 +270,14 @@ async function mulai() {
   isi.append("identitas", JSON.stringify(id));
   isi.append("buat_copyable", $("copyable").checked ? "true" : "false");
   isi.append("isi_docx", $("isi-docx").checked ? "true" : "false");
-  if (k.api_key) isi.append("ai_api_key", k.api_key);
-  if (k.base_url) isi.append("ai_base_url", k.base_url);
-  if (k.model) isi.append("ai_model", k.model);
+  // Kredensial hanya dikirim kalau kuncinya diisi. Kalau alamat dan nama
+  // model ikut terkirim tanpa kunci, kunci milik server akan dipakai untuk
+  // alamat itu, dan layanan AI akan menolak permintaannya.
+  if (k.api_key) {
+    isi.append("ai_api_key", k.api_key);
+    if (k.base_url) isi.append("ai_base_url", k.base_url);
+    if (k.model) isi.append("ai_model", k.model);
+  }
 
   $("mulai").disabled = true;
   pesan("pesan-mulai", "mengirim berkas...", "info");
@@ -381,6 +441,12 @@ async function muatRiwayat() {
         a.textContent = "unduh ZIP";
         kanan.append(a);
       }
+      // Catatan pekerjaan selalu bisa diunduh, termasuk kalau gagal.
+      const log = document.createElement("a");
+      log.className = "tombol kecil garis";
+      log.href = "/v1/jobs/" + encodeURIComponent(j.job_id) + "/log";
+      log.textContent = "log";
+      kanan.append(log);
 
       baris.append(id, p, waktu, kanan);
       kotak.append(baris);
@@ -428,6 +494,10 @@ function pasang() {
   $("unduh-zip").addEventListener("click", () => {
     const jalur = jalurJob(jobAktif, "download");
     if (jalur) window.location.assign(jalur);
+  });
+  $("unduh-log").addEventListener("click", (e) => {
+    e.preventDefault();
+    if (jobAktif) window.location.assign(jalurLog(jobAktif));
   });
 }
 

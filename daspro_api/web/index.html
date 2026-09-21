@@ -25,12 +25,16 @@
     </div>
   </section>
 
-  <!-- ============ Langkah 1: pengaturan AI ============ -->
-  <section class="card">
-    <h2><span class="nomor">1</span> Pengaturan AI</h2>
-    <p class="bantuan">
-      Kode C ditulis oleh model bahasa, jadi kunci API wajib diisi.
-      Isi di sini kalau server belum punya kunci sendiri.
+  <!-- ============ Langkah 1: pengaturan AI (opsional) ============ -->
+  <section class="card kartu-opsional" id="kartu-ai">
+    <h2>
+      <span class="nomor">1</span> Pengaturan AI
+      <span class="tanda-opsional">opsional</span>
+      <span class="pil abu" id="tanda-ai">memeriksa...</span>
+    </h2>
+    <p class="bantuan" id="bantuan-ai">
+      Kode C ditulis oleh model bahasa. Bagian ini cukup dibiarkan kosong
+      kalau server sudah punya kunci API sendiri.
     </p>
 
     <div class="catatan-aman">
@@ -77,6 +81,10 @@
         <button type="button" class="tombol kecil" id="lihat-kunci">lihat</button>
       </span>
     </label>
+
+    <p class="redup kecil" id="hint-ai">
+      Kosongkan semua kolom untuk memakai kunci milik server.
+    </p>
 
     <div class="baris-tombol">
       <button type="button" class="tombol" id="simpan-ai">Simpan pengaturan</button>
@@ -143,6 +151,7 @@
     <div id="ringkasan"></div>
     <div class="baris-tombol">
       <button type="button" class="tombol besar" id="unduh-zip">Unduh semua (ZIP)</button>
+      <a class="tombol garis" id="unduh-log" href="#">Unduh catatan (log)</a>
     </div>
     <table id="tabel-berkas" class="sembunyi">
       <thead><tr><th>Berkas</th><th>Ukuran</th><th></th></tr></thead>
