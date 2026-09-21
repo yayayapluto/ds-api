@@ -112,6 +112,45 @@ class UjiWebDanKredensial(unittest.TestCase):
             self.assertEqual(kode, 200, jalur)
             self.assertIn(harus, data)
 
+    def test_02b_log_dibuka_lewat_modal(self):
+        """Catatan pekerjaan dibuka di modal dulu, unduhan jadi opsi kedua."""
+        kode, data, _ = self.panggil("/")
+        self.assertEqual(kode, 200)
+        self.assertIn(b'id="modal-log"', data)
+        self.assertIn(b'id="lihat-log"', data)
+        # Tautan unduh tetap ada, tapi di dalam modal.
+        self.assertIn(b'id="unduh-log"', data)
+
+        kode, js, _ = self.panggil("/app.js")
+        self.assertEqual(kode, 200)
+        self.assertIn(b"bukaLog", js)
+        self.assertIn(b"tutupLog", js)
+
+    def test_02c_dokumentasi_api(self):
+        """Halaman /docs dan berkas /openapi.json dilayani layanan ini."""
+        kode, data, jenis = self.panggil("/docs")
+        self.assertEqual(kode, 200)
+        self.assertIn("text/html", jenis)
+        self.assertIn(b"swagger-ui", data)
+
+        kode, data, jenis = self.panggil("/openapi.json")
+        self.assertEqual(kode, 200)
+        self.assertIn("application/json", jenis)
+        spek = json.loads(data)
+        self.assertTrue(spek["openapi"].startswith("3."))
+        # Jalur yang benar-benar dilayani server ada di spesifikasi.
+        for jalur in ["/health", "/v1/jobs", "/v1/jobs/{id}/log", "/v1/ai/uji"]:
+            self.assertIn(jalur, spek["paths"])
+
+    def test_02d_pemantauan_tidak_cepat_menyerah(self):
+        """Satu permintaan gagal tidak langsung mematikan pemantauan."""
+        kode, js, _ = self.panggil("/app.js")
+        self.assertEqual(kode, 200)
+        self.assertIn(b"tanyaKemajuan", js)
+        self.assertIn(b"gagalBerturut", js)
+        # Pemantauan bisa disambungkan lagi ke pekerjaan yang masih jalan.
+        self.assertIn(b"pantauJob", js)
+
     def test_03_tidak_bisa_baca_berkas_luar(self):
         """Jalur yang keluar dari folder web harus ditolak."""
         for jalur in [

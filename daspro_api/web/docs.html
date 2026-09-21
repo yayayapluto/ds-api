@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>daspro-api - Dokumentasi API</title>
+<!--
+  Halaman ini memuat Swagger UI dari CDN. Versinya dikunci dan berkasnya
+  diperiksa dengan SRI, jadi berkas yang berubah di CDN tidak akan dijalankan.
+  Berkas spesifikasinya sendiri selalu datang dari layanan ini
+  (/openapi.json), jadi dokumentasi tetap sesuai kode yang sedang jalan.
+  Kalau CDN tidak bisa dijangkau, halaman memberi tahu dan menyediakan
+  tautan berkas spesifikasi mentahnya.
+-->
+<link rel="stylesheet"
+      href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"
+      integrity="sha384-wxLW6kwyHktdDGr6Pv1zgm/VGJh99lfUbzSn6HNHBENZlCN7W602k9VkGdxuFvPn"
+      crossorigin="anonymous">
+<style>
+  body { margin: 0; background: #f4f5f8; }
+  .topbar {
+    background: #16181d; color: #fff; padding: 16px 22px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .topbar h1 { margin: 0; font-size: 1.15rem; }
+  .topbar p { margin: 4px 0 0; color: #b9bdc7; font-size: .86rem; }
+  .topbar a { color: #9fc0ff; }
+  #pesan {
+    margin: 20px; padding: 14px 16px; border-radius: 8px;
+    background: #fde3e0; color: #b42318;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: .9rem;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>daspro-api &mdash; Dokumentasi API</h1>
+  <p>
+    Berkas spesifikasi: <a href="/openapi.json">/openapi.json</a> &middot;
+    Panel pengerjaan: <a href="/">halaman utama</a>
+  </p>
+</header>
+
+<div id="pesan" hidden></div>
+<div id="swagger-ui"></div>
+
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script>
+  const pesan = document.getElementById("pesan");
+  const kotak = document.getElementById("swagger-ui");
+
+  if (typeof SwaggerUIBundle !== "function") {
+    // CDN tidak terjangkau. Beri tahu apa yang bisa dipakai sebagai gantinya.
+    pesan.hidden = false;
+    pesan.append("Swagger UI tidak bisa dimuat (CDN tidak terjangkau). ");
+    pesan.append("Berkas spesifikasinya tetap bisa diambil di ");
+    const tautan = document.createElement("a");
+    tautan.href = "/openapi.json";
+    tautan.textContent = "/openapi.json";
+    pesan.append(tautan);
+    pesan.append(
+      ", lalu dibuka di alat lain seperti Postman atau editor Swagger."
+    );
+  } else {
+    SwaggerUIBundle({
+      url: "/openapi.json",
+      dom_id: "#swagger-ui",
+      deepLinking: true,
+      docExpansion: "list",
+      defaultModelsExpandDepth: 0,
+      tryItOutEnabled: true,
+      presets: [SwaggerUIBundle.presets.apis],
+    });
+  }
+</script>
+
+</body>
+</html>
