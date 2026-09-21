@@ -38,10 +38,20 @@ class TidakDitemukan(DasproError):
 
 
 class AiGagal(DasproError):
-    """Panggilan ke layanan AI gagal atau jawabannya tidak bisa dipakai."""
+    """Panggilan ke layanan AI gagal atau jawabannya tidak bisa dipakai.
+
+    `sementara` menandai kegagalan yang pantas dicoba ulang: jaringan
+    tersendat, gerbang menolak sementara, atau jawaban kosong. Kegagalan
+    yang tetap (kunci salah, permintaan salah bentuk) tidak ditandai,
+    supaya tidak diulang-ulang tanpa guna.
+    """
 
     status = 502
     kode = "ai_gagal"
+
+    def __init__(self, pesan: str, detail=None, sementara: bool = False):
+        super().__init__(pesan, detail)
+        self.sementara = sementara
 
 
 class AiBelumDiatur(DasproError):

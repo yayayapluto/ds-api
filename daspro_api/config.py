@@ -64,6 +64,8 @@ class Pengaturan:
     # jatahnya perlu lega supaya jawaban tidak terpotong di tengah.
     ai_max_tokens: int = 32768
     ai_temperature: float = 0.2
+    # Berapa kali panggilan yang gagal sementara diulang sebelum menyerah.
+    ai_retry: int = 2
 
     gcc: str = "gcc"
     run_timeout: int = 5
@@ -161,6 +163,7 @@ class Pengaturan:
             ai_timeout=_ke_int(ambil("DASPRO_AI_TIMEOUT", "300"), 300),
             ai_max_tokens=_ke_int(ambil("DASPRO_AI_MAX_TOKENS", "32768"), 32768),
             ai_temperature=_ke_float(ambil("DASPRO_AI_TEMPERATURE", "0.2"), 0.2),
+            ai_retry=_ke_int(ambil("DASPRO_AI_RETRY", "2"), 2),
             gcc=ambil("DASPRO_GCC", "gcc"),
             run_timeout=_ke_int(ambil("DASPRO_RUN_TIMEOUT", "5"), 5),
             memory_mb=_ke_int(ambil("DASPRO_MEMORY_MB", "256"), 256),

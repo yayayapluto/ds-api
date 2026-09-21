@@ -207,22 +207,50 @@ class KlienAi:
                 badan = e.read().decode("utf-8", "replace")[:600]
             except Exception:  # badan error kadang tidak bisa dibaca
                 badan = "(tidak terbaca)"
+            # 408, 429, dan 5xx biasanya lewat: gerbang sedang sibuk atau
+            # meneruskan permintaan ke model yang sedang mengantre.
+            sementara = e.code in {408, 409, 425, 429} or e.code >= 500
             raise AiGagal(
-                f"layanan AI menolak permintaan (HTTP {e.code})", detail=badan
+                f"layanan AI menolak permintaan (HTTP {e.code})",
+                detail=badan,
+                sementara=sementara,
             ) from e
         except urllib.error.URLError as e:
-            raise AiGagal(f"tidak bisa menghubungi layanan AI: {e.reason}") from e
+            raise AiGagal(
+                f"tidak bisa menghubungi layanan AI: {e.reason}", sementara=True
+            ) from e
         except TimeoutError as e:
-            raise AiGagal("panggilan ke layanan AI melewati batas waktu") from e
+            raise AiGagal(
+                "panggilan ke layanan AI melewati batas waktu", sementara=True
+            ) from e
 
     def _post(self, url: str, isi: dict, header: dict) -> dict:
         """Panggil layanan AI dalam mode aliran, lalu susun jadi satu jawaban."""
         return baca_aliran_sse(self._kirim(url, isi, header))
 
     def lengkapi(self, prompt: str, sistem: str = "", suhu=None, token=None) -> str:
-        """Minta satu jawaban teks dari model."""
-        self.periksa()
+        """Minta satu jawaban teks dari model.
 
+        Kegagalan yang sifatnya sementara (jaringan tersendat, gerbang
+        menolak sementara, jawaban kosong) dicoba lagi dengan jeda
+        bertambah. Kegagalan tetap seperti kunci salah langsung dilempar,
+        supaya tidak menunggu sia-sia.
+        """
+        self.periksa()
+        kali = max(1, self.p.ai_retry + 1)
+        for n in range(kali):
+            try:
+                return self._lengkapi_sekali(prompt, sistem, suhu, token)
+            except AiGagal as e:
+                if not e.sementara or n == kali - 1:
+                    raise
+                time.sleep(min(2**n, 8))
+        raise AiGagal("panggilan ke layanan AI gagal")
+
+    def _lengkapi_sekali(
+        self, prompt: str, sistem: str = "", suhu=None, token=None
+    ) -> str:
+        """Satu percobaan panggilan tanpa pengulangan."""
         pesan = []
         if sistem:
             pesan.append({"role": "system", "content": sistem})
@@ -248,7 +276,9 @@ class KlienAi:
             teks = str(pilih["message"]["content"]).strip()
         except (KeyError, IndexError, TypeError) as e:
             raise AiGagal(
-                "bentuk jawaban layanan AI tidak dikenal", detail=str(hasil)[:600]
+                "bentuk jawaban layanan AI tidak dikenal",
+                detail=str(hasil)[:600],
+                sementara=True,
             ) from e
 
         if not teks:
@@ -262,7 +292,11 @@ class KlienAi:
                     "Naikkan DASPRO_AI_MAX_TOKENS atau pakai model tanpa "
                     "penalaran."
                 )
-            raise AiGagal("jawaban AI kosong")
+            # Jawaban kosong tanpa alasan jelas biasanya gangguan sesaat di
+            # gerbang atau model yang sedang mengantre, jadi pantas diulang.
+            raise AiGagal(
+                "jawaban AI kosong", detail=str(hasil)[:600], sementara=True
+            )
         return teks
 
     def lengkapi_json(self, prompt: str, sistem: str = "", suhu=None, token=None) -> dict:
@@ -283,14 +317,3 @@ class KlienAi:
             mentah2 = self.lengkapi(tegas, sistem=sistem, suhu=0.0, token=token)
             return ambil_json(mentah2)
 
-    def coba_lagi(self, prompt: str, sistem: str = "", suhu=None, token=None, kali: int = 3):
-        """Ulangi panggilan kalau layanan sedang bermasalah (bukan salah isi)."""
-        kali = max(1, kali)
-        for n in range(kali):
-            try:
-                return self.lengkapi(prompt, sistem=sistem, suhu=suhu, token=token)
-            except AiGagal as e:
-                if n == kali - 1:
-                    raise
-                time.sleep(min(2 ** n, 8))
-        raise AiGagal("panggilan ke layanan AI gagal")
