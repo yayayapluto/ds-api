@@ -12,13 +12,17 @@ import sys
 import tempfile
 import threading
 import unittest
+import unittest.mock
+import urllib.error
+import email.message
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from daspro_api.ai import ambil_json, baca_json_http  # noqa: E402
+from daspro_api.ai import KlienAi, ambil_json, baca_json_http  # noqa: E402
 from daspro_api.compiler import KompilatorC  # noqa: E402
 from daspro_api.config import Pengaturan  # noqa: E402
+from daspro_api.errors import AiGagal  # noqa: E402
 from daspro_api.pipeline import Pipeline, rapikan_identitas  # noqa: E402
 from daspro_api.sanitize import bersihkan, cari_pelanggar  # noqa: E402
 from daspro_api.skillbridge import Skill  # noqa: E402
@@ -272,6 +276,105 @@ class UjiAlat(unittest.TestCase):
         with self.assertRaises(Exception):
             rapikan_identitas({"nama": "A", "nim": "1"})
 
+
+class UjiPengulanganAi(unittest.TestCase):
+    """Panggilan yang gagal sementara diulang, yang tetap tidak.
+
+    Ini yang dulu membuat pekerjaan berhenti di tengah: satu jawaban kosong
+    dari layanan AI langsung menandai seluruh pekerjaan gagal, padahal
+    percobaan berikutnya biasanya berhasil.
+    """
+
+    class KlienUji(KlienAi):
+        """Klien yang satu percobaannya dijalankan oleh fungsi `jawaban`."""
+
+        def __init__(self, pengaturan, jawaban):
+            super().__init__(pengaturan)
+            self.jawaban = jawaban
+            self.hitung = 0
+
+        def _lengkapi_sekali(self, prompt, sistem="", suhu=None, token=None) -> str:
+            self.hitung += 1
+            return self.jawaban(self.hitung)
+
+    def _p(self, ai_retry: int = 2) -> Pengaturan:
+        return Pengaturan(
+            ai_api_key="kunci-uji",
+            ai_base_url="http://localhost/v1",
+            ai_model="model-uji",
+            ai_retry=ai_retry,
+        )
+
+    def test_gagal_sementara_diulang_lalu_berhasil(self):
+        def jawaban(n):
+            if n <= 2:
+                raise AiGagal("jawaban AI kosong", sementara=True)
+            return "halo"
+
+        klien = self.KlienUji(self._p(), jawaban)
+        self.assertEqual(klien.lengkapi("apa saja"), "halo")
+        self.assertEqual(klien.hitung, 3)
+
+    def test_gagal_tetap_tidak_diulang(self):
+        def jawaban(n):
+            raise AiGagal("kunci salah", sementara=False)
+
+        klien = self.KlienUji(self._p(), jawaban)
+        with self.assertRaises(AiGagal):
+            klien.lengkapi("apa saja")
+        # Kegagalan tetap hanya dicoba sekali, tidak menunggu sia-sia.
+        self.assertEqual(klien.hitung, 1)
+
+    def test_menyerah_setelah_batas_pengulangan(self):
+        def jawaban(n):
+            raise AiGagal("jawaban AI kosong", sementara=True)
+
+        klien = self.KlienUji(self._p(ai_retry=2), jawaban)
+        with self.assertRaises(AiGagal):
+            klien.lengkapi("apa saja")
+        # Satu percobaan awal + dua pengulangan.
+        self.assertEqual(klien.hitung, 3)
+
+    def test_retry_nol_berarti_sekali_coba(self):
+        def jawaban(n):
+            raise AiGagal("jawaban AI kosong", sementara=True)
+
+        klien = self.KlienUji(self._p(ai_retry=0), jawaban)
+        with self.assertRaises(AiGagal):
+            klien.lengkapi("apa saja")
+        self.assertEqual(klien.hitung, 1)
+
+    def _galat_http(self, kode: int, alasan: str) -> urllib.error.HTTPError:
+        return urllib.error.HTTPError(
+            "http://localhost/v1", kode, alasan, email.message.Message(), None
+        )
+
+    def test_kegagalan_jaringan_ditandai_sementara(self):
+        """Galat jaringan pantas diulang, kunci salah tidak."""
+        klien = KlienAi(self._p())
+        with unittest.mock.patch(
+            "urllib.request.urlopen",
+            side_effect=urllib.error.URLError("koneksi ditolak"),
+        ):
+            with self.assertRaises(AiGagal) as ctx:
+                klien._kirim("http://localhost/v1", {}, {})
+        self.assertTrue(ctx.exception.sementara)
+
+    def test_http_429_ditandai_sementara(self):
+        klien = KlienAi(self._p())
+        galat = self._galat_http(429, "Too Many Requests")
+        with unittest.mock.patch("urllib.request.urlopen", side_effect=galat):
+            with self.assertRaises(AiGagal) as ctx:
+                klien._kirim("http://localhost/v1", {}, {})
+        self.assertTrue(ctx.exception.sementara)
+
+    def test_http_401_tidak_ditandai_sementara(self):
+        klien = KlienAi(self._p())
+        galat = self._galat_http(401, "Unauthorized")
+        with unittest.mock.patch("urllib.request.urlopen", side_effect=galat):
+            with self.assertRaises(AiGagal) as ctx:
+                klien._kirim("http://localhost/v1", {}, {})
+        self.assertFalse(ctx.exception.sementara)
 
 class UjiKompilator(unittest.TestCase):
     def setUp(self):

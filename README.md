@@ -125,6 +125,7 @@ Semua dibaca dari berkas `.env` atau variabel lingkungan. Nama tanpa awalan
 | `DASPRO_AI_TIMEOUT` | `300` | batas waktu satu panggilan AI (detik) |
 | `DASPRO_AI_MAX_TOKENS` | `32768` | batas panjang jawaban AI (model penalaran butuh jatah lega) |
 | `DASPRO_AI_TEMPERATURE` | `0.2` | tingkat keacakan jawaban AI |
+| `DASPRO_AI_RETRY` | `2` | berapa kali panggilan yang gagal sementara diulang |
 | `DASPRO_GCC` | `gcc` | program kompilator |
 | `DASPRO_RUN_TIMEOUT` | `5` | batas waktu menjalankan program (detik) |
 | `DASPRO_MEMORY_MB` | `256` | batas memori program C |
