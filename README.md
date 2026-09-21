@@ -5,12 +5,18 @@ Layanan HTTP untuk mengerjakan modul praktikum Dasar Pemrograman C.
 Kirim modul praktikum dan template LKP lewat satu permintaan, lalu unduh
 hasilnya berupa satu berkas ZIP. Isi ZIP: semua berkas `.c`, laporan
 `jawaban_LKP_Modul_X.md`, versi HTML yang tiap selnya bisa disalin, dan
-template LKP `.docx` yang sudah terisi.
+template LKP `.docx` yang sudah terisi. ZIP juga berisi `kompilasi.sh`,
+bukan `ringkasan.json`. Ringkasan tetap tersedia lewat endpoint `/result`.
 
 Yang dikerjakan AI hanya dua hal: menulis kode C dan menyusun isi laporan.
 Sisanya dikerjakan program biasa, jadi hasilnya bisa diperiksa dan diulang:
 mengompilasi dengan `gcc`, menjalankan program dengan masukan nilai batas,
 membuat HTML copyable, mengisi template docx, dan memeriksa gaya bahasa.
+
+Setelah mengekstrak ZIP, jalankan `sh kompilasi.sh` untuk mengompilasi semua
+berkas C, termasuk subfolder. Pasang `gcc` terlebih dahulu. Biner tersimpan
+di `bin/` dengan susunan subfolder yang sama, misalnya `bin/latihan_01`
+dan `bin/tugas/tugas_modul_05`. Skrip tidak menjalankan program hasil kompilasi.
 
 ## Isi repo
 
@@ -36,11 +42,10 @@ tests/               pengujian dan berkas contoh
 data/                folder kerja, dibuat sendiri saat dijalankan
 ```
 
-Isi folder `skill/` disalin apa adanya dari skill `solve-daspro`. Isinya
-dijaga sama dengan aslinya, kecuali nama dan NIM pada berkas contoh yang
-sudah diganti tanda `-`. Karena itu folder ini tidak ikut diperiksa
-`pyright` (lihat `pyrightconfig.json`); kode yang diperiksa hanya yang ada
-di `daspro_api/` dan `tests/`.
+Folder `skill/` berasal dari skill `solve-daspro`. Pengisian DOCX disesuaikan
+agar hanya mengisi tempat jawaban, bukan paragraf kosong untuk jarak.
+Folder ini tidak ikut diperiksa `pyright`; kode yang diperiksa ada di
+`daspro_api/` dan `tests/`.
 
 Tidak ada paket pihak ketiga yang wajib dipasang. Kalau modulnya PDF,
 pasang `pypdf` supaya teksnya bisa dibaca. Untuk mengisi template docx,
@@ -209,6 +214,9 @@ curl -s -X POST http://127.0.0.1:8787/v1/verify -F 'files=@latihan_01.c' -F 'mas
 - Tulisan untuk dosen hanya memakai karakter yang ada di keyboard.
 - Pengisian template docx tidak mengubah format: jumlah paragraf sebelum
   dan sesudah pengisian harus sama.
+  Peta tempat jawaban dikirim ke AI sebelum laporan dibuat. Jika jawaban
+  wajib belum terisi, pekerjaan gagal dengan rincian slot yang kurang;
+  tidak diganti kalimat generik. Kotak screenshot tetap kosong.
 
 ## Pengujian
 

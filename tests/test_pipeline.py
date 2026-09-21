@@ -8,6 +8,7 @@ masuk ke laporan dan template docx.
 import json
 import pathlib
 import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -15,6 +16,8 @@ import unittest
 import unittest.mock
 import urllib.error
 import email.message
+import xml.etree.ElementTree as ET
+import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -185,6 +188,58 @@ def jawab_kode(prompt: str) -> str:
 
 
 def jawab_laporan(prompt: str) -> str:
+    peta = json.loads(prompt.split("=== PETA ISIAN LKP ===", 1)[1].split("\n===", 1)[0])
+    identitas = dict(
+        baris.split(": ", 1)
+        for baris in prompt.split("=== IDENTITAS MAHASISWA ===", 1)[1].split("\n===", 1)[0].strip().splitlines()
+    )
+    hasil = json.loads(
+        prompt.split("=== HASIL PENGUJIAN NYATA (keluaran ini yang benar, jangan diubah) ===", 1)[1]
+        .split("\n===", 1)[0]
+    )
+    deret = next(item for item in hasil if item["berkas"] == "latihan_01.c")
+    kasus = deret["kasus_uji"]
+    bukti = "\n\n".join(
+        f"Masukan: {uji['masukan'].strip()}\nHarapan: {uji['harapan']}\n"
+        f"Keluaran nyata:\n{uji['keluaran']}\nKode keluar: {uji['kode_keluar']}\n"
+        f"Status: {uji['status']}"
+        for uji in kasus
+    )
+    sel = {}
+    for item in peta["sel_kosong"]:
+        if not item.get("wajib", True):
+            sel[item["kunci"]] = ""
+        elif "latihan_01.c" in item["soal"]:
+            sel[item["kunci"]] = bukti
+        else:
+            raise AssertionError(f"Sel fixture tidak dikenali: {item}")
+    titik = {}
+    for item in peta["baris_titik"]:
+        soal = item["soal"]
+        label = soal.splitlines()[-1].rstrip(":")
+        if not item.get("wajib", True):
+            jawaban = ""
+        elif label in ("Nama", "NIM", "Kelas"):
+            jawaban = identitas[label]
+        elif "Pernyataan:" in soal:
+            jawaban = (
+                "Program diuji otomatis dengan gcc, bukan dijalankan manual oleh mahasiswa. "
+                "Masukan 0 ditolak dengan pesan Nilai tidak valid. dan kode keluar 1."
+            )
+        elif "Jelaskan cara kerja program:" in soal:
+            jawaban = (
+                "Program membaca n lalu memeriksa apakah nilainya 1 sampai 10. "
+                "Perulangan for menaikkan i dari 1 sampai 10 dan mencetak n * i. "
+                "Masukan 3 menghasilkan perkalian dari 3 x 1 = 3 sampai 3 x 10 = 30."
+            )
+        elif "Kesimpulan:" in soal:
+            jawaban = (
+                "Program mencetak bilangan dari 1 sampai n. "
+                "Nilai n kurang dari 1 ditolak sebelum perulangan.\n" + bukti
+            )
+        else:
+            raise AssertionError(f"Baris fixture tidak dikenali: {item}")
+        titik[str(item["no"])] = jawaban
     return json.dumps(
         {
             "judul": "Jawaban LKP Modul 5 - Perulangan",
@@ -192,51 +247,23 @@ def jawab_laporan(prompt: str) -> str:
                 {
                     "kode": "IV.1",
                     "judul": "Deret Bilangan",
+                    "berkas": "latihan_01.c",
                     "analisis": [
                         {
-                            "pertanyaan": "Mengapa nilai nol harus ditolak?",
-                            "jawaban": (
-                                "Karena perulangan dari 1 sampai 0 tidak pernah berjalan, "
-                                "jadi tidak ada angka yang tercetak."
-                            ),
+                            "pertanyaan": "Bagaimana hasil pengujian program latihan_01.c?",
+                            "jawaban": bukti,
                         }
                     ],
-                    "trace": {
-                        "kolom": ["Langkah", "Kondisi", "Hasil Kondisi"],
-                        "baris": [["1", "i <= n", "true"], ["6", "i <= n", "false"]],
-                    },
-                    "prediksi_output": "Angka 1 sampai 5 tercetak satu tiap baris.",
                 }
             ],
-            "eksperimen": [
-                {
-                    "perubahan": "Mengubah batas perulangan jadi i < n",
-                    "prediksi": "Angka terakhir tidak tercetak",
-                    "hasil": "Angka 5 tidak muncul",
-                    "error": "tidak ada",
-                    "penjelasan": "Perulangan berhenti sebelum angka terakhir.",
-                }
-            ],
-            "debugging": {
-                "error_gcc": "error: expected ';' before '}' token",
-                "temuan": [
-                    {
-                        "bagian": "baris printf terakhir",
-                        "jenis": "gagal dikompilasi",
-                        "penyebab": "Tanda titik koma belum ditulis.",
-                        "perbaikan": "Menambahkan tanda titik koma di akhir baris.",
-                    }
-                ],
-            },
+            "eksperimen": [],
+            "debugging": {},
             "refleksi": [
-                "Saya jadi lebih paham cara kerja perulangan for.",
-                "Nilai batas harus diuji supaya program tidak salah hitung.",
-                "Menjalankan program sendiri membuat hasilnya lebih yakin.",
+                "Perulangan for mencetak angka dari 1 sampai n. Nilai i bertambah satu setiap putaran.",
+                "Nilai nol ditolak sebelum perulangan. Program berhenti dengan kode keluar 1.",
+                "Hasil ini berasal dari pengujian otomatis. Pengujian manual mahasiswa belum dicatat.",
             ],
-            "isian_lkp": {
-                "titik": {"1": "1 2 3 4 5", "2": "Angka tercetak naik satu tiap baris."},
-                "sel": {"1A2B3C4D": "Sesuai", "1A2B3C4E": "1 2 3 4 5"},
-            },
+            "isian_lkp": {"titik": titik, "sel": sel},
         }
     )
 
@@ -461,6 +488,23 @@ class UjiPipeline(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
+    def test_isian_lkp_tidak_sah_ditolak(self):
+        kerja = pathlib.Path(self.tmp) / "docx_kerja"
+        peta = {
+            "sel_kosong": [{"kunci": "ABCD1234", "soal": "Tuliskan hasil pengujian."}],
+            "baris_titik": [],
+        }
+        for sel in (
+            {},
+            {"ABCD1234": " \n"},
+            {"ABCD1234": 42},
+            {"ABCD1234": "Sudah dikerjakan sesuai modul."},
+            {"ABCD1234": "Masukan 5 mencetak 1 sampai 5.", "SALAH": "Jawaban salah tempat."},
+        ):
+            with self.subTest(sel=sel), self.assertRaises(AiGagal):
+                self.pipeline.isi_template(None, kerja, peta, {"isian_lkp": {"sel": sel}})
+        self.assertFalse((kerja.parent / "LKP_terisi.docx").exists())
+
     def test_alur_lengkap_menghasilkan_zip(self):
         class Job:
             def __init__(self, folder):
@@ -499,20 +543,57 @@ class UjiPipeline(unittest.TestCase):
         md = (
             pathlib.Path(self.tmp) / "job1" / "kerja" / hasil["berkas"]["laporan_md"]
         ).read_text(encoding="utf-8")
-        self.assertIn("Sesuai", md)
+        self.assertIn("Masukkan n: 1", md)
+        self.assertIn("Nilai tidak valid.", md)
         self.assertEqual(cari_pelanggar(md), {})
 
         # Berkas kode ikut, termasuk yang di folder tugas.
-        import zipfile
-
         with zipfile.ZipFile(zip_path) as z:
             nama = z.namelist()
+            paket = pathlib.Path(self.tmp) / "paket hasil"
+            z.extractall(paket)
         self.assertIn("latihan_01.c", nama)
         self.assertIn("latihan_02.c", nama)
         self.assertIn("tugas/tugas_modul_05.c", nama)
         self.assertTrue(any(n.endswith("_copyable.html") for n in nama))
         self.assertTrue(any(n.startswith("LKP_Modul_5") for n in nama))
-        self.assertIn("ringkasan.json", nama)
+        self.assertNotIn("ringkasan.json", nama)
+        self.assertFalse((zip_path.parent / "ringkasan.json").exists())
+        self.assertIn("kompilasi.sh", nama)
+
+        # Bukti kasus nyata harus sampai ke AI lalu ke teks DOCX, bukan hanya MD.
+        docx = next(paket.glob("LKP_Modul_5*.docx"))
+        with zipfile.ZipFile(docx) as z:
+            root = ET.fromstring(z.read("word/document.xml"))
+        teks_docx = " ".join(" ".join(root.itertext()).split())
+        self.assertIn("Masukkan n: 1 2 3 4 5", teks_docx)
+        self.assertIn("Masukkan n: Nilai tidak valid.", teks_docx)
+        self.assertIn("Kode keluar: 1", teks_docx)
+        self.assertIn("n * i", teks_docx)
+        self.assertNotIn("Sudah dikerjakan sesuai modul.", teks_docx)
+
+        # Skrip harus bekerja dari folder lain, termasuk sumber di subfolder.
+        cwd_lain = pathlib.Path(self.tmp) / "folder lain"
+        cwd_lain.mkdir()
+        kompil = subprocess.run(
+            ["sh", str(paket / "kompilasi.sh")], cwd=cwd_lain,
+            capture_output=True, text=True, timeout=30,
+        )
+        self.assertEqual(kompil.returncode, 0, kompil.stderr)
+        for berkas, masukan, keluaran in (
+            ("latihan_01", "5\n", "Masukkan n: 1\n2\n3\n4\n5\n"),
+            ("latihan_02", "3\n70\n80\n90\n", "Masukkan banyak data: Rata-rata : 80.00\n"),
+            ("tugas/tugas_modul_05", "3\n", "Masukkan n: " + "".join(
+                f"3 x {i} = {3 * i}\n" for i in range(1, 11)
+            )),
+        ):
+            with self.subTest(berkas=berkas):
+                jalan = subprocess.run(
+                    [str(paket / "bin" / berkas)], input=masukan, cwd=cwd_lain,
+                    capture_output=True, text=True, timeout=5,
+                )
+                self.assertEqual(jalan.returncode, 0, jalan.stderr)
+                self.assertEqual(jalan.stdout, keluaran)
 
 
 if __name__ == "__main__":
