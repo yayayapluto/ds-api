@@ -84,15 +84,17 @@ User mengunggah template docx penuh titik-titik/sel kosong + sumber jawaban
 terpisah, dan minta jawabannya dimasukkan tanpa mengubah format aslinya:
 
 1. `python3 scripts/isi_lkp_docx.py peta template.docx unpacked`
-   buka docx, gabung run yang pecah, lalu cetak peta semua tempat kosong
-   (sel kosong + baris titik-titik) ke `unpacked/peta.json`.
+   buka docx tanpa mengubah XML. Cetak peta sel jawaban dan blok titik-titik
+   beserta konteks soal, baris, dan kolom ke `unpacked/peta.json`.
 2. Isi `mapping.json` dari peta itu:
    `{"sel": {"kunci": "jawaban sel"}, "titik": {"1": "jawaban baris 1"}}`
-   kunci sel dari `peta.json` (`paraId` kalau ada, kalau tidak `selN`),
-   kunci titik = nomor urut baris di `peta.json`.
+   kunci sel dari `peta.json` (`paraId` unik kalau ada, kalau tidak `selN`),
+   kunci titik = nomor blok jawaban di `peta.json`. Beberapa baris lanjutan
+   untuk satu jawaban memakai satu nomor.
 3. `python3 scripts/isi_lkp_docx.py isi unpacked mapping.json hasil.docx`
-   terapkan mapping, kosongkan sisa titik-titik, buang karakter di luar
-   keyboard, bungkus ulang, cek jumlah paragraf sama persis (struktur utuh).
+   terapkan mapping, normalkan hanya jawaban baru ke karakter keyboard,
+   lalu bungkus ulang. Isian tanpa jawaban tetap utuh, bukan dihapus atau
+   diisi kalimat generik. Cek jumlah paragraf sama persis (struktur utuh).
 
 Aturan isi: kotak "tempelkan screenshot" dibiarkan kosong, label/nomor soal
 asli tidak disentuh, jawaban ditulis dengan gaya bahasa `references/gaya-bahasa.md`

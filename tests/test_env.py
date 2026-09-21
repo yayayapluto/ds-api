@@ -34,6 +34,8 @@ class UjiBerkasEnv(unittest.TestCase):
         self.berkas = pathlib.Path(self.tmp) / ".env"
         self.berkas.write_text(ISI, encoding="utf-8")
         self.simpan = dict(os.environ)
+        for nama in baca_berkas_env(self.berkas):
+            os.environ.pop(nama, None)
 
     def tearDown(self):
         for nama in ("DASPRO_PORT", "DASPRO_AI_API_KEY", "DASPRO_AI_MODEL",

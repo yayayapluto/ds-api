@@ -144,7 +144,6 @@ class Skill:
         kerja = Path(kerja)
         kerja.mkdir(parents=True, exist_ok=True)
         modul.buka_docx(Path(docx), kerja)
-        modul.gabung_run(kerja)
         p = modul.peta(kerja)
         modul.peta_json(kerja, p)
         return p
@@ -156,13 +155,12 @@ class Skill:
         berkas_xml = kerja / modul.DOC
         sebelum = modul.hitung_paragraf(berkas_xml.read_text(encoding="utf-8"))
         modul.isi(kerja, mapping)
-        sisa = modul.buang_non_keyboard(kerja)
         sesudah = modul.hitung_paragraf(berkas_xml.read_text(encoding="utf-8"))
         modul.bungkus(kerja, Path(hasil))
         return {
             "sel_diisi": len(mapping.get("sel", {})),
             "baris_diisi": len(mapping.get("titik", {})),
-            "karakter_dibuang": {k: v for k, v in (sisa or {}).items()},
+            "karakter_dibuang": {},
             "paragraf_sebelum": sebelum,
             "paragraf_sesudah": sesudah,
             "struktur_utuh": sebelum == sesudah,

@@ -3,13 +3,13 @@
 Tahapannya berurutan dan tiap tahap melaporkan kemajuannya, supaya
 pemanggil bisa memantau lewat endpoint status pekerjaan.
 """
-import json
+import shlex
 import shutil
+import tempfile
 import threading
 import time
 import zipfile
 from pathlib import Path
-from typing import Optional
 
 from daspro_api.ai import KlienAi
 from daspro_api.compiler import KompilatorC
@@ -304,6 +304,7 @@ class Pipeline:
         identitas: dict,
         hasil_kode: list,
         klien=None,
+        peta_lkp=None,
     ) -> dict:
         pertanyaan = [
             q.get("pertanyaan")
@@ -313,52 +314,72 @@ class Pipeline:
             if isinstance(q, dict)
         ]
         prompt = prompt_laporan(
-            self.skill, isi["modul"], isi["lkp"], identitas, hasil_kode, pertanyaan
+            self.skill, isi["modul"], isi["lkp"], identitas, hasil_kode, pertanyaan,
+            peta_lkp=peta_lkp,
         )
         return self._minta_json(job, prompt, "laporan", klien)
 
     # --- pengisian template docx ----------------------------------------
-    def isi_template(self, job, berkas_lkp: Path, kerja: Path, laporan_ai: dict) -> dict:
-        peta = self.skill.peta_docx(Path(berkas_lkp), kerja)
-        mapping_ai = laporan_ai.get("isian_lkp") or {}
-        sel_peta = peta.get("sel_kosong") or []
-        titik_peta = peta.get("baris_titik") or []
+    def isi_template(self, job, kerja: Path, peta: dict, laporan_ai: dict) -> dict:
+        mapping_ai = laporan_ai.get("isian_lkp")
+        if not isinstance(mapping_ai, dict):
+            raise AiGagal("AI tidak mengembalikan isian template LKP")
+        mapping = {}
+        kurang = []
+        for jenis, entri, atribut in (
+            ("sel", peta.get("sel_kosong", []), "kunci"),
+            ("titik", peta.get("baris_titik", []), "no"),
+        ):
+            jawaban = mapping_ai.get(jenis, {})
+            if not isinstance(jawaban, dict):
+                raise AiGagal(f"isian LKP bagian {jenis} harus berupa objek JSON")
+            kunci_sah = {str(item[atribut]) for item in entri}
+            if jawaban.keys() - kunci_sah:
+                raise AiGagal(f"isian LKP bagian {jenis} memuat kunci di luar peta template")
+            mapping[jenis] = {}
+            for item in entri:
+                kunci = str(item[atribut])
+                nilai = jawaban.get(kunci, "")
+                if not isinstance(nilai, str):
+                    raise AiGagal(f"isian LKP {jenis}:{kunci} harus berupa teks")
+                nilai = bersihkan(nilai).strip()
+                if nilai.casefold().rstrip(".") == "sudah dikerjakan sesuai modul":
+                    raise AiGagal(f"isian LKP {jenis}:{kunci} berisi jawaban generik")
+                if item.get("wajib", True) and not nilai:
+                    kurang.append(f"{jenis}:{kunci}")
+                if nilai:
+                    mapping[jenis][kunci] = nilai
 
-        # Hanya kunci yang benar-benar ada di peta yang dipakai, supaya
-        # pengisian tidak pernah salah pasang.
-        kunci_sel = {s["kunci"] for s in sel_peta}
-        sel = {
-            k: str(v)
-            for k, v in (mapping_ai.get("sel") or {}).items()
-            if k in kunci_sel
-        }
-        jumlah_titik = len(titik_peta)
-        titik = {}
-        for k, v in (mapping_ai.get("titik") or {}).items():
-            try:
-                n = int(k)
-            except (TypeError, ValueError):
-                continue
-            if 1 <= n <= jumlah_titik:
-                titik[str(n)] = str(v)
-
-        # Sisa tempat kosong diisi kalimat pendek supaya tidak ada titik-titik
-        # yang tertinggal, tapi tidak mengarang jawaban panjang.
-        for s in sel_peta:
-            if s["kunci"] not in sel:
-                sel[s["kunci"]] = "Sudah dikerjakan sesuai modul."
-        for i in range(1, jumlah_titik + 1):
-            if str(i) not in titik:
-                titik[str(i)] = "Sudah dikerjakan sesuai modul."
-
+        if kurang:
+            raise AiGagal(
+                f"AI belum menjawab {len(kurang)} isian LKP; DOCX tidak diterbitkan",
+                detail=", ".join(kurang),
+            )
         hasil_docx = kerja.parent / "LKP_terisi.docx"
-        laporan = self.skill.isi_docx(kerja, {"sel": sel, "titik": titik}, hasil_docx)
-        laporan["sel_kosong_di_template"] = len(sel_peta)
-        laporan["baris_titik_di_template"] = jumlah_titik
+        laporan = self.skill.isi_docx(kerja, mapping, hasil_docx)
+        if not laporan["struktur_utuh"]:
+            raise InputTidakValid("struktur template LKP berubah setelah pengisian")
+        laporan["sel_kosong_di_template"] = len(peta.get("sel_kosong", []))
+        laporan["baris_titik_di_template"] = len(peta.get("baris_titik", []))
         return {"berkas": hasil_docx, "laporan": laporan}
 
     # --- penyusunan hasil ------------------------------------------------
     def bungkus_zip(self, folder: Path, nama: str) -> Path:
+        perintah = ["#!/bin/sh", "set -eu", 'cd -- "$(dirname -- "$0")"']
+        for sumber in sorted(folder.rglob("*.c")):
+            if not sumber.is_file():
+                continue
+            relatif = sumber.relative_to(folder)
+            biner = Path("bin") / relatif.with_suffix("")
+            perintah.append(shlex.join(["mkdir", "-p", biner.parent.as_posix()]))
+            perintah.append(shlex.join([
+                "gcc", "-std=c11", "-Wall", "-Wextra", "-O0",
+                "./" + relatif.as_posix(), "-o", biner.as_posix(),
+            ]))
+        perintah.append("printf '%s\\n' 'Kompilasi selesai. Biner ada di bin/.'")
+        skrip = folder / "kompilasi.sh"
+        skrip.write_text("\n".join(perintah) + "\n", encoding="utf-8")
+        skrip.chmod(0o755)
         tujuan = folder / nama
         with zipfile.ZipFile(tujuan, "w", zipfile.ZIP_DEFLATED) as z:
             for f in sorted(folder.rglob("*")):
@@ -418,10 +439,25 @@ class Pipeline:
         job.maju("uji", "Menjalankan program dengan nilai batas.", 55)
         hasil_kode = self.uji_semua(job, analisis, hasil_kode, folder)
 
-        job.maju("laporan", "Menyusun isi laporan.", 72)
-        laporan_ai = self.buat_laporan(job, isi, analisis, identitas, hasil_kode, klien)
-
+        docx_hasil = None
+        laporan_docx = None
         nomor = identitas.get("modul")
+        with tempfile.TemporaryDirectory(prefix="daspro_docx_") as tmp:
+            kerja = Path(tmp) / "template"
+            peta = None
+            if berkas_lkp and opsi.get("isi_docx", True):
+                peta = self.skill.peta_docx(Path(berkas_lkp), kerja)
+            job.maju("laporan", "Menyusun isi laporan.", 72)
+            laporan_ai = self.buat_laporan(
+                job, isi, analisis, identitas, hasil_kode, klien, peta_lkp=peta,
+            )
+            if peta is not None:
+                job.maju("docx", "Mengisi template LKP tanpa mengubah format.", 78)
+                keluaran = self.isi_template(job, kerja, peta, laporan_ai)
+                laporan_docx = keluaran["laporan"]
+                docx_hasil = folder / f"LKP_Modul_{nomor}_{bersihkan(str(identitas.get('nim')))}.docx"
+                shutil.move(str(keluaran["berkas"]), str(docx_hasil))
+
         job.maju("susun", "Merangkai berkas laporan.", 80)
         sumber = [Path(berkas_modul).name] + ([Path(berkas_lkp).name] if berkas_lkp else [])
         md_teks = susun(identitas, analisis, hasil_kode, laporan_ai, sumber)
@@ -434,30 +470,6 @@ class Pipeline:
                 md_path, folder / f"jawaban_LKP_Modul_{nomor}_copyable.html"
             )
 
-        docx_hasil = None
-        laporan_docx = None
-        if berkas_lkp and opsi.get("isi_docx", True):
-            job.maju("docx", "Mengisi template LKP tanpa mengubah format.", 88)
-            kerja = folder / "_docx_kerja"
-            try:
-                keluaran = self.isi_template(job, Path(berkas_lkp), kerja, laporan_ai)
-                docx_hasil = Path(keluaran["berkas"])
-                laporan_docx = keluaran["laporan"]
-                nama_docx = (
-                    f"LKP_Modul_{nomor}_{bersihkan(str(identitas.get('nim')))}.docx"
-                )
-                docx_akhir = folder / nama_docx
-                shutil.move(str(docx_hasil), str(docx_akhir))
-                docx_hasil = docx_akhir
-            except Exception as e:  # template gagal diisi tidak boleh membatalkan semua
-                laporan_docx = {"gagal": f"{type(e).__name__}: {e}"}
-                self._catat(
-                    job,
-                    f"pengisian template docx gagal: {type(e).__name__}: {e}",
-                    "docx-gagal",
-                )
-            finally:
-                shutil.rmtree(kerja, ignore_errors=True)
 
         # --- pemeriksaan akhir -------------------------------------------
         job.maju("cek", "Memeriksa bahasa dan karakter tulisan.", 93)
@@ -486,14 +498,12 @@ class Pipeline:
                 "laporan_md": md_path.name,
                 "laporan_html": html_path.name if html_path else None,
                 "lkp_docx": docx_hasil.name if docx_hasil else None,
+                "kompilasi": "kompilasi.sh",
             },
             "cek_bahasa": {"lulus": cek["lulus"], "jumlah_temuan": cek["jumlah"]},
             "karakter_non_keyboard": pelanggar,
             "isi_template": laporan_docx,
         }
-        (folder / "ringkasan.json").write_text(
-            json.dumps(ringkasan, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
 
         job.maju("bungkus", "Membungkus semua berkas jadi satu ZIP.", 97)
         nama_zip = f"daspro_modul_{nomor}_{bersihkan(str(identitas.get('nim')))}.zip"

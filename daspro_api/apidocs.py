@@ -200,6 +200,7 @@ SKEMA = {
                     "laporan_md": {"type": "string", "nullable": True},
                     "laporan_html": {"type": "string", "nullable": True},
                     "lkp_docx": {"type": "string", "nullable": True},
+                    "kompilasi": {"type": "string", "example": "kompilasi.sh"},
                 },
             },
             "cek_bahasa": {
@@ -542,7 +543,7 @@ def spesifikasi() -> dict:
                 "get": {
                     "tags": ["pekerjaan"],
                     "summary": "Ringkasan hasil",
-                    "description": "Ringkasan yang sama dengan isi `ringkasan.json` di dalam ZIP.",
+                    "description": "Ringkasan hasil dalam respons API; tidak disertakan sebagai berkas di ZIP.",
                     "operationId": "hasilPekerjaan",
                     "parameters": [
                         {"name": "id", "in": "path", "required": True, "schema": {"type": "string"}}

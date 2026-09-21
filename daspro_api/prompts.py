@@ -155,18 +155,21 @@ def prompt_laporan(
     identitas: dict,
     hasil_uji: list,
     pertanyaan: Optional[list] = None,
+    peta_lkp: Optional[dict] = None,
 ) -> str:
     """Langkah 3: minta isi laporan, dengan hasil uji nyata sebagai bahan."""
     ringkas_uji = []
     for item in hasil_uji:
         ringkas_uji.append(
             {
+                "id": item.get("id"),
                 "soal": item.get("judul"),
                 "berkas": item.get("nama_berkas"),
-                "masukan": item.get("masukan"),
-                "keluaran_nyata": item.get("keluaran"),
-                "kode_keluar": item.get("kode_keluar"),
-                "status": item.get("status"),
+                "jalur": item.get("jalur"),
+                "kode": item.get("kode"),
+                "penjelasan": item.get("penjelasan"),
+                "kasus_uji": item.get("kasus_uji") or [],
+                "catatan": item.get("catatan"),
             }
         )
 
@@ -186,6 +189,9 @@ def prompt_laporan(
 
 === ISI TEMPLATE LKP ===
 {ringkas(lkp_teks, 14000)}
+
+=== PETA ISIAN LKP ===
+{json.dumps(peta_lkp or {"sel_kosong": [], "baris_titik": []}, ensure_ascii=False, indent=2)}
 
 === HASIL PENGUJIAN NYATA (keluaran ini yang benar, jangan diubah) ===
 {json.dumps(ringkas_uji, ensure_ascii=False, indent=2)}
@@ -210,17 +216,32 @@ Balas JSON dengan bentuk:
   "debugging": {{"error_gcc": "tempelan pesan gcc", "temuan": [{{"bagian": "...", "jenis": "...", "penyebab": "...", "perbaikan": "..."}}]}},
   "refleksi": ["jawaban 1", "jawaban 2", "jawaban 3"],
   "isian_lkp": {{
-    "titik": {{"1": "jawaban untuk baris titik nomor 1 di template"}},
-    "sel": {{"kunci dari peta template": "jawaban untuk sel itu"}}
+    "titik": {{}},
+    "sel": {{}}
   }}
 }}
 
 Aturan penulisan:
 - Pakai bahasa mahasiswa semester 1. Kalimat pendek, satu ide satu kalimat.
 - Jangan pakai istilah teknis tanpa dijelaskan dengan kalimat biasa.
-- Kolom hasil nyata diisi persis seperti keluaran pengujian di atas.
-- Bagian isian_lkp hanya untuk tempat kosong yang benar-benar ada di template. \
-Kunci "sel" harus memakai kunci dari peta template yang diberikan di bawah.
+- Setiap program memiliki daftar kasus_uji berisi masukan, harapan, keluaran, \
+kode_keluar, dan status. Gunakan keluaran ini sebagai hasil nyata, bukan harapan \
+atau contoh laporan. Jangan mengarang hasil eksperimen atau pesan gcc.
+- Gunakan kode dan penjelasan program untuk menjawab analisis serta tracing. \
+Pisahkan prediksi dari hasil yang benar-benar diuji.
+- Isi isian_lkp berdasarkan PETA ISIAN LKP, bukan urutan perkiraan dalam teks. \
+Untuk sel_kosong, pakai nilai kunci persis sebagai kunci isian_lkp.sel. \
+Untuk baris_titik, pakai nilai no yang diubah menjadi string sebagai kunci isian_lkp.titik. \
+Jangan menambah, menebak, atau mengganti ID.
+- Jawab setiap entri peta sesuai soal, bagian, baris, kolom, dan konteksnya. \
+Entri tanpa wajib berarti wajib=true. Setiap entri wajib harus berisi jawaban \
+spesifik yang tidak kosong; tabel hasil wajib menyertakan bukti pengujian terkait.
+- Nilai kosong hanya boleh untuk entri wajib=false yang khusus diisi manual, \
+tangkapan layar, atau baris lanjutan jawaban yang sama. Selain itu jangan kosongkan jawaban.
+- Jangan mengganti analisis atau keluaran dengan "Sudah dikerjakan sesuai modul.", \
+"Sesuai", "Sudah dijawab", rujukan ke laporan lain, atau pengakuan umum. \
+Kata "Sesuai" boleh untuk sel yang memang meminta status jika didukung kasus_uji. \
+Jika peta kosong, biarkan kedua objek isian_lkp kosong.
 - Jawaban refleksi ditulis jujur, masing-masing 2 sampai 4 kalimat.
 
 === ACUAN FORMAT LAPORAN ===

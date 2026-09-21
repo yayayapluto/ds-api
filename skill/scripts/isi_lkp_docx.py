@@ -3,20 +3,17 @@
 
 Pakai:
   python3 isi_lkp_docx.py peta template.docx [dir_kerja]
-      Buka docx, gabung run yang terpecah, simpan hasil buka ke dir_kerja,
-      lalu cetak peta semua tempat kosong (paraId) dan semua baris titik-titik
-      beserta teks soal yang mendahuluinya. Peta ini dipakai untuk menyusun
-      mapping di langkah berikutnya.
+      Buka docx tanpa mengubah XML, lalu cetak peta sel tabel kosong dan
+      blok jawaban bertitik beserta konteks soal, baris, dan kolom tabel.
 
   python3 isi_lkp_docx.py isi dir_kerja mapping.json hasil.docx
-      Terapkan mapping, hapus sisa titik-titik, buang karakter di luar
-      keyboard, bungkus ulang jadi docx, lalu bandingkan jumlah paragraf
-      dengan aslinya.
+      Terapkan jawaban yang diberikan, pertahankan isian yang belum dipetakan,
+      lalu bungkus ulang. Hanya teks jawaban baru yang dinormalkan ke keyboard.
 
 Bentuk mapping.json:
   {
     "sel": {"1A2B3C4D": "jawaban untuk sel tabel kosong"},
-    "titik": [["teks soal unik", "jawaban baris pertama"], ...]
+    "titik": {"1": "jawaban blok pertama"}
   }
 
 Kenapa tanpa Word/soffice: skrip ini mengedit XML aslinya langsung, jadi
@@ -41,10 +38,6 @@ NS = {"w": W}
 DOC = "word/document.xml"
 
 
-def esc(s: str) -> str:
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-
 def buka_docx(docx: Path, kerja: Path) -> None:
     """Bongkar docx ke folder kerja (dokumen luar = tidak dipercaya)."""
     if kerja.exists():
@@ -62,75 +55,156 @@ def buka_docx(docx: Path, kerja: Path) -> None:
             target.write_bytes(z.read(info))
 
 
-def gabung_run(kerja: Path) -> None:
-    """Gabung <w:r> bersebelahan yang gaya teksnya sama.
-
-    Word memecah satu kalimat jadi banyak <w:r> kecil. Tanpa digabung, teks
-    soal yang terlihat utuh di dokumen tidak ada sebagai satu string di XML,
-    sehingga pencarian soal tidak ketemu.
-    """
-    path = kerja / DOC
-    tree = etree.parse(str(path))
-    for p in tree.iter(f"{{{W}}}p"):
-        runs = [c for c in list(p) if c.tag == f"{{{W}}}r"]
-        i = 0
-        while i < len(runs) - 1:
-            a, b = runs[i], runs[i + 1]
-            ra, rb = a.find(f"{{{W}}}rPr"), b.find(f"{{{W}}}rPr")
-            sama = (ra is None and rb is None) or (
-                ra is not None and rb is not None
-                and etree.tostring(ra) == etree.tostring(rb)
-            )
-            if not sama:
-                i += 1
-                continue
-            ta = a.find(f"{{{W}}}t")
-            tb = b.find(f"{{{W}}}t")
-            if ta is not None and tb is not None:
-                ta.text = (ta.text or "") + (tb.text or "")
-                p.remove(b)
-                runs.pop(i + 1)
-                continue
-            i += 1
-    tree.write(str(path), xml_declaration=True, encoding="UTF-8", standalone=True)
+W14 = "http://schemas.microsoft.com/office/word/2010/wordml"
+DOTS = re.compile(r"\.{10,}")
+MANUAL = re.compile(r"screenshot|tangkapan layar|(?:tempelkan|lampirkan|sisipkan|paste|attach).*(?:gambar|foto|image)", re.I)
+PROMPT = re.compile(r"\?|:|tuliskan|jelaskan|lengkapi|isikan|jawab|hasil|kesimpulan|pernyataan", re.I)
+PLACEHOLDER = re.compile(r"(?:tempelkan|tuliskan|isikan|masukkan)\s+(?:pseudocode|flowchart|kode|jawaban)\b.*", re.I)
 
 
-TOKEN = re.compile(
-    r"<w:t(?:\s[^>]*)?>(.*?)</w:t>"
-    r"|<w:p(?P<attrs>(?:\s[^>]*?)?)/>",
-    re.S,
-)
+def _teks(node) -> str:
+    return "".join(t.text or "" for t in node.iter(f"{{{W}}}t"))
+
+
+def _peta(tree):
+    """Satu penelusuran untuk metadata publik dan lokasi XML pengisian."""
+    kosong, baris = [], []
+    lokasi = {"sel": {}, "titik": {}}
+    bagian, konteks = {}, []
+    paragraf = list(tree.iter(f"{{{W}}}p"))
+    pid_count = {}
+    for p in paragraf:
+        pid = p.get(f"{{{W14}}}paraId")
+        if pid:
+            pid_count[pid] = pid_count.get(pid, 0) + 1
+
+    def soal(tambahan=()):
+        return "\n".join(dict.fromkeys(
+            [*bagian.values(), *konteks[-3:], *tambahan]
+        ))
+
+    def titik(p, tambahan, sebelumnya):
+        teks = _teks(p)
+        cocok = list(DOTS.finditer(teks))
+        label = DOTS.sub("", teks).strip()
+        if not cocok or MANUAL.search(teks):
+            return None
+        if not tambahan and not label and konteks and MANUAL.search(konteks[-1]):
+            return None
+        konteks_soal = soal([*tambahan, label] if label else tambahan)
+        if not konteks_soal:
+            return None
+        lanjutan = sebelumnya if not label and len(cocok) == 1 else None
+        for m in cocok:
+            bagian_teks, offset = [], 0
+            for t in p.iter(f"{{{W}}}t"):
+                akhir = offset + len(t.text or "")
+                if offset < m.end() and akhir > m.start():
+                    bagian_teks.append((t, max(0, m.start() - offset), min(akhir, m.end()) - offset))
+                offset = akhir
+            if lanjutan is not None:
+                lokasi["titik"][lanjutan].append(bagian_teks)
+            else:
+                no = len(baris) + 1
+                label_isian = teks[:m.start()].rsplit(".", 1)[-1].strip() if label else ""
+                baris.append({"no": no, "soal": soal([*tambahan, label_isian]) if label_isian else konteks_soal,
+                              "wajib": True})
+                lokasi["titik"][str(no)] = [bagian_teks]
+                lanjutan = str(no) if not label and len(cocok) == 1 else None
+        return lanjutan
+
+    def tabel(tbl):
+        rows = tbl.findall(f"{{{W}}}tr")
+        if not rows:
+            return
+        teks_tabel = _teks(tbl).strip()
+        # ponytail: kotak tanpa label perlu petunjuk soal; template khusus perlu penanda eksplisit.
+        if not teks_tabel and (not konteks or MANUAL.search(konteks[-1]) or not PROMPT.search(konteks[-1])):
+            return
+        header = rows[0].findall(f"{{{W}}}tc")
+        ada_header = len(rows) > 1 and len(header) > 1 and all(_teks(c).strip() for c in header)
+        kolom, index = {}, 0
+        if ada_header:
+            for c in header:
+                span = c.find("w:tcPr/w:gridSpan", NS)
+                lebar = int(span.get(f"{{{W}}}val", "1")) if span is not None else 1
+                for k in range(index, index + lebar):
+                    kolom[k] = _teks(c).strip()
+                index += lebar
+        for nr, row in enumerate(rows, 1):
+            cells = row.findall(f"{{{W}}}tc")
+            nilai = [_teks(c).strip() for c in cells]
+            isi_baris = " | ".join(v for v in nilai if v)
+            before = row.find("w:trPr/w:gridBefore", NS)
+            index = int(before.get(f"{{{W}}}val", "0")) if before is not None else 0
+            for c, teks in zip(cells, nilai):
+                nama_kolom = kolom.get(index, "") or str(index + 1)
+                tambahan = [f"Baris {nr}: {isi_baris}", f"Kolom: {nama_kolom}"]
+                span = c.find("w:tcPr/w:gridSpan", NS)
+                index += int(span.get(f"{{{W}}}val", "1")) if span is not None else 1
+                if MANUAL.search(teks) or MANUAL.search(nama_kolom) or MANUAL.search(isi_baris):
+                    continue
+                ps = c.findall(f"{{{W}}}p")
+                merge = c.find("w:tcPr/w:vMerge", NS)
+                if merge is not None and merge.get(f"{{{W}}}val") != "restart":
+                    continue
+                konten = c.xpath(".//w:drawing | .//w:pict | .//w:object | .//w:tbl | .//w:sym | .//w:fldChar", namespaces=NS)
+                placeholder = next((p for p in ps if PLACEHOLDER.fullmatch(_teks(p).strip())), None)
+                if (not teks or placeholder is not None) and ps and not konten and not (ada_header and nr == 1):
+                    p = next((p for p in ps if not _teks(p).strip()), None)
+                    if p is None:
+                        p = placeholder if placeholder is not None else ps[0]
+                    pid = p.get(f"{{{W14}}}paraId")
+                    nomor = len(kosong) + 1
+                    kunci = pid if pid and pid_count[pid] == 1 else f"sel{nomor}"
+                    kosong.append({"kunci": kunci, "paraId": pid, "nomor": nomor,
+                                   "soal": soal(tambahan), "wajib": True})
+                    lokasi["sel"][kunci] = (p, p is placeholder)
+                lanjut = None
+                for p in ps:
+                    label = _teks(p).strip()
+                    if label and not DOTS.search(label):
+                        tambahan = [*tambahan[:2], label]
+                    lanjut = titik(p, tambahan, lanjut)
+                for nested in c.findall(f"{{{W}}}tbl"):
+                    tabel(nested)
+
+    def telusuri(parent):
+        lanjut = None
+        for node in parent:
+            if node.tag == f"{{{W}}}tbl":
+                tabel(node)
+                lanjut = None
+            elif node.tag == f"{{{W}}}p":
+                teks = _teks(node).strip()
+                if DOTS.search(teks):
+                    lanjut = titik(node, (), lanjut)
+                    continue
+                lanjut = None
+                if not teks:
+                    continue
+                style = node.find("w:pPr/w:pStyle", NS)
+                nama = style.get(f"{{{W}}}val", "") if style is not None else ""
+                heading = re.fullmatch(r"(?:Heading|Judul)([1-9])", nama, re.I)
+                if heading or re.match(r"^[IVX]+(?:\.\d+)?\.?(?:\s|$)", teks):
+                    level = int(heading.group(1)) if heading else 1
+                    for key in list(bagian):
+                        if key >= level:
+                            del bagian[key]
+                    bagian[level] = teks
+                    konteks.clear()
+                else:
+                    konteks.append(teks)
+            else:
+                telusuri(node)
+    telusuri(tree.getroot().find("w:body", NS))
+    return {"sel_kosong": kosong, "baris_titik": baris}, lokasi
 
 
 def peta(kerja: Path) -> dict:
-    """Kumpulkan semua sel kosong (paraId) dan semua baris titik-titik.
-
-    Ditelusuri berurutan, bukan per blok paragraf: kalau polanya menelan
-    satu paragraf utuh, teks di dalamnya tidak pernah terbaca.
-    """
-    data = (kerja / DOC).read_text(encoding="utf-8")
-    kosong, baris = [], []
-    soal_raw = ""
-    for m in TOKEN.finditer(data):
-        teks = m.group(1)
-        if teks is None:  # paragraf kosong self-closing = sel tabel kosong
-            attrs = m.group("attrs") or ""
-            pid = re.search(r'w14:paraId="([0-9A-Fa-f]+)"', attrs)
-            kosong.append({
-                # Dokumen buatan Word punya w14:paraId per paragraf, itu kunci
-                # paling aman. Kalau tidak ada, pakai nomor urut sel kosong.
-                "kunci": pid.group(1) if pid else f"sel{len(kosong) + 1}",
-                "paraId": pid.group(1) if pid else None,
-                "nomor": len(kosong) + 1,
-                "soal": soal_raw,
-            })
-            continue
-        isi_teks = teks.strip()
-        if len(isi_teks) >= 10 and set(isi_teks) == {"."}:
-            baris.append({"no": len(baris) + 1, "soal": soal_raw})
-        elif isi_teks:
-            soal_raw = isi_teks
-    return {"sel_kosong": kosong, "baris_titik": baris}
+    """Petakan sel tabel kosong dan blok titik; spacer dan area gambar diabaikan."""
+    tree = etree.parse(str(kerja / DOC), etree.XMLParser(resolve_entities=False))
+    return _peta(tree)[0]
 
 
 def peta_json(kerja: Path, p: dict) -> Path:
@@ -141,57 +215,51 @@ def peta_json(kerja: Path, p: dict) -> Path:
 
 
 def isi(kerja: Path, mapping: dict) -> None:
+    """Isi lokasi hasil peta sekali, tanpa menghapus isian yang tidak diberikan."""
     path = kerja / DOC
-    data = path.read_text(encoding="utf-8")
-
-    # Sel kosong. Kunci dari peta.json ("sel_kosong"[i]["kunci"]):
-    #   - paraId heksa -> dicari lewat paraId, tidak mungkin salah pasang
-    #   - "selN"       -> sel kosong ke-N, tanpa paraId (dokumen lama)
-    sel = mapping.get("sel", {})
-    for kunci, val in sel.items():
-        if not re.fullmatch(r"[0-9A-Fa-f]{6,}", kunci):
-            continue
-        pola = re.compile(r'(<w:p [^>]*w14:paraId="' + kunci + r'"[^>]*)/>')
-        data, jml = pola.subn(
-            r'\1><w:r><w:t xml:space="preserve">' + esc(val) + r"</w:t></w:r></w:p>",
-            data,
-        )
-        assert jml == 1, f"paraId {kunci} tidak ketemu atau dobel: {jml}"
-
-    # Nomor urut diproses dari yang paling belakang: tiap pengisian mengubah
-    # panjang XML, jadi offset sel berikutnya baru tetap valid kalau kita
-    # bergerak dari belakang ke depan.
-    nomor_sel = sorted(
-        (int(k.removeprefix("sel")), v)
-        for k, v in sel.items()
-        if not re.fullmatch(r"[0-9A-Fa-f]{6,}", k)
-    )
-    for n, val in reversed(nomor_sel):
-        # <w:p/> tanpa spasi dan <w:p .../> dua-duanya berarti sel kosong
-        pola = re.compile(r"<w:p((?:\s[^>]*?)?)/>")
-        cocok = list(pola.finditer(data))
-        assert len(cocok) >= n, f"sel kosong ke-{n} tidak ada (sisa {len(cocok)})"
-        m = cocok[n - 1]
-        data = (data[: m.start()] + f"<w:p{m.group(1) or ''}>"
-                + '<w:r><w:t xml:space="preserve">' + esc(val)
-                + "</w:t></w:r></w:p>" + data[m.end():])
-
-    # Baris titik-titik: kunci = nomor urut dari peta.json.
-    dots = re.compile(r'<w:t[^>]*>\.{10,}</w:t>')
-    baris = sorted(((int(k), v) for k, v in mapping.get("titik", {}).items()),
-                   reverse=True)
-    for n, jawab in baris:
-        lokasi = list(dots.finditer(data))
-        assert 1 <= n <= len(lokasi), f"baris titik ke-{n} tidak ada (total {len(lokasi)})"
-        m = lokasi[n - 1]
-        data = (data[: m.start()]
-                + '<w:t xml:space="preserve">' + esc(jawab) + "</w:t>"
-                + data[m.end():])
-
-    # sisa baris titik-titik yang belum terpakai dikosongkan, bukan dibiarkan
-    data = re.sub(r'<w:t[^>]*>\.{10,}</w:t>', "<w:t></w:t>", data)
-
-    path.write_text(data, encoding="utf-8")
+    tree = etree.parse(str(path), etree.XMLParser(resolve_entities=False))
+    _, lokasi = _peta(tree)
+    jawaban = []
+    for jenis in ("sel", "titik"):
+        for key, nilai in mapping.get(jenis, {}).items():
+            kunci = str(key)
+            if kunci not in lokasi[jenis]:
+                raise ValueError(f"Kunci {jenis} tidak ada pada peta: {kunci}")
+            if not isinstance(nilai, str):
+                raise ValueError(f"Jawaban {jenis} {kunci} harus berupa teks")
+            if nilai.strip():
+                teks = "".join(GANTI.get(ch, ch if ord(ch) < 128 else "?") for ch in nilai)
+                jawaban.append((jenis, lokasi[jenis][kunci], teks))
+    if not jawaban:
+        return
+    ganti_teks = {}
+    for jenis, target, teks in jawaban:
+        if jenis == "sel":
+            p, placeholder = target
+            texts = list(p.iter(f"{{{W}}}t"))
+            t = texts[0] if texts else None
+            if placeholder:
+                for other in texts[1:]:
+                    other.text = ""
+            if t is None:
+                r = etree.SubElement(p, f"{{{W}}}r")
+                t = etree.SubElement(r, f"{{{W}}}t")
+            t.text = teks
+            t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+        else:
+            pertama = True
+            for blok in target:
+                for t, start, end in blok:
+                    ganti_teks.setdefault(t, []).append((start, end, teks if pertama else ""))
+                    pertama = False
+    # Offset berasal dari teks asli; beberapa isian boleh berada dalam run yang sama.
+    for t, edits in ganti_teks.items():
+        nilai = t.text or ""
+        for start, end, teks in sorted(edits, reverse=True):
+            nilai = nilai[:start] + teks + nilai[end:]
+        t.text = nilai
+        t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    tree.write(str(path), xml_declaration=True, encoding="UTF-8", standalone=True)
 
 
 GANTI = {
@@ -202,21 +270,6 @@ GANTI = {
     "\u2260": "!=", "\u00a0": " ", "\u2009": " ", "\u202f": " ",
     "\u00b0": " derajat",
 }
-
-
-def buang_non_keyboard(kerja: Path) -> dict:
-    """Ganti karakter di luar keyboard di semua teks dokumen."""
-    path = kerja / DOC
-    data = path.read_text(encoding="utf-8")
-    dipakai = {}
-    for m in re.finditer(r"<w:t[^>]*>(.*?)</w:t>", data, re.S):
-        for ch in m.group(1):
-            if ord(ch) > 127:
-                dipakai[ch] = dipakai.get(ch, 0) + 1
-    for ch in dipakai:
-        data = data.replace(ch, GANTI.get(ch, "?"))
-    path.write_text(data, encoding="utf-8")
-    return dipakai
 
 
 def hitung_paragraf(teks_xml: str) -> int:
@@ -244,16 +297,15 @@ def main() -> int:
         kerja = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("unpacked")
         asli = zipfile.ZipFile(docx).read(DOC).decode("utf-8")
         buka_docx(docx, kerja)
-        gabung_run(kerja)
         p = peta(kerja)
         pj = peta_json(kerja, p)
         print(f"# Peta {docx} (folder kerja: {kerja})")
         print(f"# jumlah paragraf asli: {hitung_paragraf(asli)}")
         print(f"# sel kosong: {len(p['sel_kosong'])}, baris titik: {len(p['baris_titik'])}")
         print(f"# peta lengkap: {pj}")
-        print("\n## Sel kosong (kunci: paraId)")
+        print("\n## Sel kosong (kunci mapping)")
         for s in p["sel_kosong"]:
-            print(f"  {s['paraId']}  <- soal: {s['soal'][:70]}")
+            print(f"  {s['kunci']}  <- soal: {s['soal'][:70]}")
         print("\n## Baris titik-titik")
         for s in p["baris_titik"]:
             print(f"  {s['no']}. setelah soal: {s['soal'][:70]}")
@@ -268,12 +320,10 @@ def main() -> int:
         hasil = Path(sys.argv[4])
         sebelum = hitung_paragraf((kerja / DOC).read_text(encoding="utf-8"))
         isi(kerja, mapping)
-        sisa = buang_non_keyboard(kerja)
         sesudah = hitung_paragraf((kerja / DOC).read_text(encoding="utf-8"))
         bungkus(kerja, hasil)
         print(f"sel diisi: {len(mapping.get('sel', {}))}")
         print(f"baris titik diisi: {len(mapping.get('titik', []))}")
-        print(f"karakter non-keyboard dibuang: {sisa or 'tidak ada'}")
         print(f"paragraf: {sebelum} -> {sesudah}", end=" ")
         if sebelum == sesudah:
             print("(SAMA, struktur utuh)")
